@@ -1,0 +1,99 @@
+---
+version: "3"
+
+vars:
+  GIT_ROOT:
+    sh: git rev-parse --show-toplevel
+  MAIN_PACKAGE: main.go
+  VET_CMD: $(go env GOPATH)/bin/golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
+  UNIT_CMD: $(go env GOPATH)/bin/ginkgo --randomize-suites -v --race ./...
+  COV_CMD: |
+    result=$(go test -race -coverprofile cover.out ./...)
+    status=$?
+
+    echo "$result"
+
+    if test $status -ne 0; then
+      exit $status
+    fi
+
+    echo "$result" | "$(go env GOPATH)"/bin/go-junit-report > report.xml
+
+tasks:
+  deps:
+    desc: Install dependencies
+    cmds:
+      - go install github.com/onsi/ginkgo/v2/ginkgo@v2.5.0
+      - go install mvdan.cc/gofumpt@latest
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
+      - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
+      # someone nuked govulncheck's versions on Dec 8th and currently we can use 'latest'
+      - go install golang.org/x/vuln/cmd/govulncheck@v0.0.0-20221208180742-f2dca5ff4cc3
+      - go install github.com/jstemmer/go-junit-report@v0.9.1
+      - go install github.com/segmentio/golines@latest
+
+  mod:
+    desc: Module maintenance
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  vet:
+    desc: Report likely mistakes in packages
+    cmds:
+      - "{{ .VET_CMD }}"
+
+  vuln:
+    desc: Run Go's vulnerability scanner
+    cmds:
+      - govulncheck ./...
+
+  run:
+    desc: Compile and run Go program
+    cmds:
+      - go run {{ .MAIN_PACKAGE }} {{.CLI_ARGS}}
+
+  unit:
+    desc: Test packages
+    cmds:
+      - "{{ .UNIT_CMD }}"
+
+  unit:int:
+    desc: Integration test packages
+    cmds:
+      - ./test.sh
+
+  test:
+    desc: Test all
+    cmds:
+      - task: deps
+      - task: mod
+      - task: fmt:check
+      - task: vet
+      - task: cov
+      - task: unit:int
+
+  cov:
+    desc: Generate coverage
+    cmds:
+      - "{{ .COV_CMD }}"
+
+  fmt:
+    desc: Reformat files whose formatting differs from `go_fmt_command`
+    cmds:
+      - golines --base-formatter=gofumpt -w .
+      - golines -w .
+
+  fmt:check:
+    desc: Check files whose formatting differs from `go_fmt_command`
+    cmds:
+      # https://github.com/mvdan/gofumpt/issues/114
+      - test -z "$(gofumpt -d -e . | tee /dev/stderr)"
+      - test -z "$(golines -l --dry-run --base-formatter=gofumpt -w .)"
+
+  doc:generate:
+    desc: Generate markdown documentation for golang code
+    cmds:
+      # NOTE(john.dewey): Docs will not render headers correctly.
+      # https://github.com/princjef/gomarkdoc/issues/81
+      - gomarkdoc --output README.md ./...

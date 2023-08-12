@@ -26,7 +26,6 @@ tasks:
       - go install github.com/onsi/ginkgo/v2/ginkgo@v2.5.0
       - go install mvdan.cc/gofumpt@latest
       - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
-      - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@latest
       # someone nuked govulncheck's versions on Dec 8th and currently we can use 'latest'
       - go install golang.org/x/vuln/cmd/govulncheck@v0.0.0-20221208180742-f2dca5ff4cc3
       - go install github.com/jstemmer/go-junit-report@v0.9.1
@@ -91,9 +90,34 @@ tasks:
       - test -z "$(gofumpt -d -e . | tee /dev/stderr)"
       - test -z "$(golines -l --dry-run --base-formatter=gofumpt -w .)"
 
-  doc:generate:
-    desc: Generate markdown documentation for golang code
+  build:
+    run: once
+    desc: build linux/ARCH compatible binary, build docker images, and render manifests
+    vars:
+      PKG_PATH: github.com/retr0h/psion
+      ARCH: "{{.ARCH | default ARCH}}"
+      TIMESTAMP:
+        sh: date +%F
+      DEFAULT_VERSION:
+        sh: |
+          {{ if .CI_COMMIT_TAG }}
+              echo {{ .CI_COMMIT_TAG }}
+          {{ else if .CI_MERGE_REQUEST_SOURCE_BRANCH_SHA }}
+              git describe --tags --match '*pre*' {{.CI_MERGE_REQUEST_SOURCE_BRANCH_SHA}} | sed 's/^v//g'
+          {{ else }}
+              git describe --tags --match '*pre*' | sed 's/^v//g'
+          {{ end }}
+      COMMIT:
+        sh: |
+          {{ if .CI_MERGE_REQUEST_SOURCE_BRANCH_SHA }}
+          echo {{.CI_MERGE_REQUEST_SOURCE_BRANCH_SHA}}
+          {{ else }}
+          git rev-parse HEAD
+          {{ end }}
+      VERSION: "{{ .VERSION | default .DEFAULT_VERSION }}"
+      BUILD_FLAGS: -ldflags "-s -w -X {{.PKG_PATH}}/cmd.date={{.TIMESTAMP}}
+        -X {{.PKG_PATH}}/cmd.commit={{.COMMIT}}
+        -X {{.PKG_PATH}}/cmd.version={{.VERSION}}"
     cmds:
-      # NOTE(john.dewey): Docs will not render headers correctly.
-      # https://github.com/princjef/gomarkdoc/issues/81
-      - gomarkdoc --output README.md ./...
+      - cmd: GOOS=linux GOARCH={{.ARCH}} CGO_ENABLED=0 go build {{.BUILD_FLAGS}} -o psion-linux-{{.ARCH}}
+      - cmd: echo "created psion-linux-{{.ARCH}}"

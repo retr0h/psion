@@ -8,16 +8,49 @@ import (
 	"github.com/spf13/afero"
 )
 
+var _ = Describe("Read", func() {
+	When("file exists", func() {
+		appFs := afero.NewMemMapFs()
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
+
+		BeforeEach(func() {
+			_ = appFs.MkdirAll(dir, 0o755)
+
+			err := afero.WriteFile(
+				appFs,
+				filePath,
+				[]byte("mockContent"),
+				0o644,
+			)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should return file []byte", func() {
+			got, err := Read(appFs, filePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(got)).Should(Equal("mockContent"))
+		})
+	})
+
+	When("file does not exist", func() {
+		It("should have error", func() {
+			appFs := afero.NewMemMapFs()
+
+			_, err := Read(appFs, "does-not-exist")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})
+
 var _ = Describe("Copy", func() {
 	appFs := afero.NewMemMapFs()
-	srcDir := "/src"
-	dstDir := "/dst"
-	srcFile := filepath.Join(srcDir, "srcFile")
-	dstFile := filepath.Join(dstDir, "dstFile")
+	dir := "/app"
+	srcFile := filepath.Join(dir, "srcFile")
+	dstFile := filepath.Join(dir, "dstFile")
 
 	BeforeEach(func() {
-		_ = appFs.MkdirAll(srcDir, 0o755)
-		_ = appFs.MkdirAll(dstDir, 0o755)
+		_ = appFs.MkdirAll(dir, 0o755)
 	})
 
 	When("dstFile does not exist", func() {
@@ -51,17 +84,17 @@ var _ = Describe("Copy", func() {
 })
 
 var _ = Describe("Exists", func() {
-	When("srcFile exists", func() {
+	When("file exists", func() {
 		appFs := afero.NewMemMapFs()
-		srcDir := "/src"
-		srcFile := filepath.Join(srcDir, "srcFile")
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
 
 		BeforeEach(func() {
-			_ = appFs.MkdirAll(srcDir, 0o755)
+			_ = appFs.MkdirAll(dir, 0o755)
 
 			err := afero.WriteFile(
 				appFs,
-				srcFile,
+				filePath,
 				[]byte("mockContent"),
 				0o644,
 			)
@@ -69,12 +102,12 @@ var _ = Describe("Exists", func() {
 		})
 
 		It("should be true", func() {
-			got := Exists(appFs, srcFile)
+			got := Exists(appFs, filePath)
 			Expect(got).Should(BeTrue())
 		})
 	})
 
-	When("srcFile does not exist", func() {
+	When("file does not exist", func() {
 		It("should be false", func() {
 			appFs := afero.NewMemMapFs()
 
@@ -87,15 +120,15 @@ var _ = Describe("Exists", func() {
 var _ = Describe("Size", func() {
 	When("file exists", func() {
 		appFs := afero.NewMemMapFs()
-		srcDir := "/src"
-		srcFile := filepath.Join(srcDir, "srcFile")
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
 
 		BeforeEach(func() {
-			_ = appFs.MkdirAll(srcDir, 0o755)
+			_ = appFs.MkdirAll(dir, 0o755)
 
 			err := afero.WriteFile(
 				appFs,
-				srcFile,
+				filePath,
 				[]byte("mockContent"),
 				0o644,
 			)
@@ -103,7 +136,7 @@ var _ = Describe("Size", func() {
 		})
 
 		It("should return file length in bytes", func() {
-			got, err := Size(appFs, srcFile)
+			got, err := Size(appFs, filePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(got).Should(Equal(int64(11)))
 		})
@@ -122,15 +155,15 @@ var _ = Describe("Size", func() {
 var _ = Describe("HashFile", func() {
 	When("file exists", func() {
 		appFs := afero.NewMemMapFs()
-		srcDir := "/src"
-		srcFile := filepath.Join(srcDir, "srcFile")
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
 
 		BeforeEach(func() {
-			_ = appFs.MkdirAll(srcDir, 0o755)
+			_ = appFs.MkdirAll(dir, 0o755)
 
 			err := afero.WriteFile(
 				appFs,
-				srcFile,
+				filePath,
 				[]byte("mockContent"),
 				0o644,
 			)
@@ -138,7 +171,7 @@ var _ = Describe("HashFile", func() {
 		})
 
 		It("should return SHA1-hash of file contents", func() {
-			got, err := HashFile(appFs, srcFile)
+			got, err := HashFile(appFs, filePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(got).Should(Equal("a388678dad3db361c9198ea665070210e58a0fe5"))
 		})
@@ -157,17 +190,16 @@ var _ = Describe("HashFile", func() {
 var _ = Describe("Identical", func() {
 	When("file exists", func() {
 		appFs := afero.NewMemMapFs()
-		srcDir := "/src"
-		dstDir := "/dst"
-		srcFile := filepath.Join(srcDir, "srcFile")
-		dstFile := filepath.Join(dstDir, "dstFile")
+		dir := "/app"
+		a := filepath.Join(dir, "a")
+		b := filepath.Join(dir, "b")
 
 		BeforeEach(func() {
-			_ = appFs.MkdirAll(srcDir, 0o755)
+			_ = appFs.MkdirAll(dir, 0o755)
 
 			err := afero.WriteFile(
 				appFs,
-				srcFile,
+				a,
 				[]byte("mockContent"),
 				0o644,
 			)
@@ -175,7 +207,7 @@ var _ = Describe("Identical", func() {
 
 			err = afero.WriteFile(
 				appFs,
-				dstFile,
+				b,
 				[]byte("mockContent"),
 				0o644,
 			)
@@ -183,7 +215,7 @@ var _ = Describe("Identical", func() {
 		})
 
 		It("should be true", func() {
-			got, err := Identical(appFs, srcFile, dstFile)
+			got, err := Identical(appFs, a, b)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(got).Should(BeTrue())
 		})

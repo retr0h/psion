@@ -1,3 +1,21 @@
+# Examples
+
+## File
+
+Create and/or update a file with the specified contents:
+
+```yaml
+apiVersion: files.psion.io/v1alpha1
+kind: File
+metadata:
+  name: name
+spec:
+  path: /etc/passwd
+  exists: true
+  mode: "0644"
+```
+
+Reference material
 
 ```yaml
 file:

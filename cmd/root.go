@@ -38,9 +38,9 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig, initLogger)
+	cobra.OnInitialize(initLogger, initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config.yaml", "config file")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "psion.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "set log level to debug")
 
 	// bind flags to config
@@ -54,13 +54,13 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		viper.AddConfigPath(".")
-		viper.SetConfigName("config.yaml")
+		viper.SetConfigName("psion.yaml")
 		viper.SetConfigType("yaml")
 	}
 
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
-	viper.SetEnvPrefix("geo")
+	viper.SetEnvPrefix("psion")
 
 	if err := viper.ReadInConfig(); err != nil {
 		logrus.WithError(err).Fatal("no valid config found")

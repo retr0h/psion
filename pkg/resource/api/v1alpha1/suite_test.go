@@ -1,4 +1,4 @@
-package resource_test
+package v1alpha1_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestResource(t *testing.T) {
+func TestV1alpha1(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Resource Suite")
+	RunSpecs(t, "V1alpha1 Suite")
 }

@@ -1,4 +1,4 @@
-package scheme_test
+package config_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestScheme(t *testing.T) {
+func TestConfig(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Scheme Suite")
+	RunSpecs(t, "Config Suite")
 }

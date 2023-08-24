@@ -4,17 +4,17 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
 
+	"github.com/retr0h/psion/internal/config"
 	fileutil "github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/api/v1alpha1"
-	"github.com/retr0h/psion/pkg/resource/scheme"
 )
 
-var (
-	file      string
-	resources []api.Manager
-)
+var file string
+
+// resources []api.Manager
 
 // applyCmd represents the status command.
 var applyCmd = &cobra.Command{
@@ -24,6 +24,7 @@ var applyCmd = &cobra.Command{
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		appFs := afero.NewOsFs()
+		plan := false
 
 		// todo: loop through list of configs and construct manager resources
 		resources := make([]api.Manager, 0, 1)
@@ -34,24 +35,41 @@ var applyCmd = &cobra.Command{
 				Fatal("cannot read file")
 		}
 
-		s := scheme.New(logger)
-		groupVersion := s.Decode(fileContent)
-
-		if groupVersion.Kind == "File" &&
-			groupVersion.Version() == "v1alpha1" {
-			var resourceKind api.Manager
-			resourceKind = v1alpha1.NewFile(
-				groupVersion.Version(),
-				groupVersion.Kind,
-				logger,
-				appFs,
-				fileContent,
-			)
-			resources = append(resources, resourceKind)
+		runtimeConfig, err := config.LoadRuntimeConfig(fileContent)
+		if err != nil {
+			logrus.WithError(err).
+				WithField("file", file).
+				Fatal("cannot load file")
 		}
 
+		if runtimeConfig.APIVersion != v1alpha1.FileAPIVersion {
+			logrus.WithField("apiVersion", runtimeConfig.APIVersion).
+				Fatal("invalid api version")
+		}
+
+		if runtimeConfig.Kind != v1alpha1.FileKind {
+			logrus.WithField("kind", runtimeConfig.Kind).
+				Fatal("invalid kind")
+		}
+
+		var resourceKind api.Manager = v1alpha1.NewFile(
+			logger,
+			appFs,
+			plan,
+		)
+
+		if err := yaml.Unmarshal(fileContent, resourceKind); err != nil {
+			logrus.WithError(err).
+				WithField("file", file).
+				Fatal("cannot unmarshal file")
+		}
+		resources = append(resources, resourceKind)
+
 		for _, resource := range resources {
-			resource.Reconcile()
+			if err := resource.Reconcile(); err != nil {
+        logrus.WithError(err).
+          Fatal("cannot reconcile")
+		  }
 		}
 	},
 }
@@ -62,5 +80,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "todo.")
 
 	// todo: shitty name, change
-	rootCmd.MarkPersistentFlagRequired("file")
+	_ = rootCmd.MarkPersistentFlagRequired("file")
 }

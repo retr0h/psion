@@ -1,6 +1,11 @@
 # Psion
 
-Psion is a simplistic Go based system automation tool.
+## Introduction
+
+### What is Psion?
+
+Psion is a simplistic Go based system automation tool, which embeds the
+declared state into a binary to be distributed to end-systems for realization.
 
 Inspired by [Goss][], designed to resemble [Kubernetes][].
 
@@ -9,7 +14,23 @@ Inspired by [Goss][], designed to resemble [Kubernetes][].
   the study (and employment) of paranormal or psychic phenomena, such as
   extrasensory perception, telepathy and psychokinesis.
 
-# Testing
+### Why use Psion?
+
+* Psion is EASY!
+* Psion is FAST!
+* Psion is "SMALL!"
+
+## Usage
+
+Preview the changes to be made:
+
+    $ psion plan
+
+Apply desired state:
+
+    $ psion apply
+
+## Testing
 
 To execute tests:
 
@@ -23,11 +44,11 @@ List helpful targets:
 
     $ task
 
-# Examples
+## Examples
 
 A common usage will look something like this:
 
-# License
+## License
 
 The [MIT][] License.
 

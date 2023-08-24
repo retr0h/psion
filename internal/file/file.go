@@ -65,6 +65,16 @@ func Copy(fs afero.Fs, src string, dst string) error {
 	return w.Close()
 }
 
+// test this TODO
+// Remove removes the named file if exists.
+func Remove(fs afero.Fs, filePath string) error {
+	if err := fs.Remove(filePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Exists reports if the named file or directory exists.
 func Exists(fs afero.Fs, filePath string) bool {
 	if _, err := fs.Stat(filePath); err != nil {

@@ -1,0 +1,4 @@
+---
+file:
+  /tmp/foo:
+    exists: false

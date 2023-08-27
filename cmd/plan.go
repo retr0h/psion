@@ -1,21 +1,17 @@
 package cmd
 
 import (
-	"embed"
 	"fmt"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-//go:embed resources/*.yaml
-var resourceFiles embed.FS
-
-// applyCmd represents the status command.
-var applyCmd = &cobra.Command{
-	Use:   "apply",
-	Short: "Apply desired state.",
-	Long: `Make consistent with the desired state.
+// planCmd represents the status command.
+var planCmd = &cobra.Command{
+	Use:   "plan",
+	Short: "Preview the changes to be made.",
+	Long: `Plan the changes to make consistent with the desired state.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// By the time we reach this point, we know that the arguments were
@@ -25,7 +21,7 @@ var applyCmd = &cobra.Command{
 
 		appFs := afero.NewOsFs()
 
-		plan := false
+		plan := true
 		resources, err := loadAllEmbeddedResourceFiles(appFs, resourceFiles, plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)
@@ -42,5 +38,5 @@ var applyCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(applyCmd)
+	rootCmd.AddCommand(planCmd)
 }

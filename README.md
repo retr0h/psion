@@ -22,13 +22,17 @@ Inspired by [Goss][], designed to resemble [Kubernetes][].
 
 ## Usage
 
+Build the binary (eventually move to `psion build`):
+
+    $ task build
+
 Preview the changes to be made:
 
-    $ psion plan
+    $ dist/psion plan
 
 Apply desired state:
 
-    $ psion apply
+    $ dist/psion apply
 
 ## Testing
 

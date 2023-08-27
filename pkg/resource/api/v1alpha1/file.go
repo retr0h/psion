@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/retr0h/psion/internal/file"
+	// "github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -52,9 +52,9 @@ type FileStatus struct {
 	// Phase sets `phase` as .status.Phase of the resource.
 	Phase api.Phase
 	// A human readable message indicating details about the transition.
-	Message string // "UnexpectedAdmissionError"
+	Message string
 	// The reason for the condition's last transition.
-	Reason string // "UnexpectedAdmissionError"
+	Reason string
 }
 
 // NewFile create a new instance of File.
@@ -64,11 +64,35 @@ func NewFile(
 	plan bool,
 ) *File {
 	return &File{
-		plan:   false,
+		plan:   plan,
 		logger: logger,
 		appFs:  appFs,
 	}
 }
+
+// GetStatus the status property.
+func (f *File) GetStatus() api.Phase { return f.Status.Phase }
+
+// Set the status property.
+func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
+
+// GetStatusAsString the status property cast to a string.
+func (f *File) GetStatusAsString() string { return string(f.Status.Phase) }
+
+// Get the message property.
+func (f *File) GetMessage() string { return f.Status.Message }
+
+// Set the message property.
+func (f *File) SetMessage(message string) { f.Status.Message = message }
+
+// GetReason the reason property.
+func (f *File) GetReason() string { return f.Status.Reason }
+
+// GetSpec the spec property.
+func (f *File) GetSpec() interface{} { return f.Spec }
+
+// GetFs the appFs property.
+func (f *File) GetFs() afero.Fs { return f.appFs }
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
@@ -78,75 +102,32 @@ func (f *File) Reconcile() error {
 		slog.String("APIVersion", f.APIVersion),
 	)
 
-	// if exists is false, remove the file and do nothing else
+	// Spec.File.Path should be removed
 	if !f.Spec.Exists {
-		f.Status.Message = fmt.Sprintf("remove: %s", f.Spec.Path)
-		if file.Exists(f.appFs, f.Spec.Path) {
-			if f.plan {
-				f.Status.Phase = api.Pending
-				f.Status.Reason = "plan"
-			} else {
-				err := file.Remove(f.appFs, f.Spec.Path)
-				if err != nil {
-					f.Status.Reason = err.Error()
-					f.Status.Phase = api.Failed
-				} else {
-					f.Status.Phase = api.Succeeded
-				}
+		if f.plan {
+			// Plan the removal
+			f.Status.Reason = "Plan"
+			planFSM := FilePlanRemoveFSM()
+			err := planFSM.SendEvent(FilePlanStatus, f)
+			if err != nil {
+				fmt.Errorf("Couldn't set the initial state of the state machine, err: %w", err)
 			}
 		} else {
-			f.Status.Phase = api.Failed
-			f.Status.Reason = "does not exist"
+			// Do the removal
+			fmt.Println("IMPLEMENT")
 		}
 	}
 
 	f.logger.Info(
 		"completed",
-		slog.String("Message", f.Status.Message),
-		slog.String("Reason", f.Status.Reason),
-		slog.String("Phase", string(f.Status.Phase)),
+		slog.String("Message", f.GetMessage()),
+		slog.String("Reason", f.GetReason()),
+		slog.String("Phase", f.GetStatusAsString()),
+		slog.Group(FileKind,
+			slog.String("Path", f.Spec.Path),
+			slog.Bool("Exists", f.Spec.Exists),
+		),
 	)
 
 	return nil
 }
-
-// GetStatus the status property.
-func (f *File) GetStatus() api.Phase { return f.Status.Phase }
-
-// Get the message property.
-func (f *File) GetMessage() string { return f.Status.Message }
-
-// GetReason the reason property.
-func (f *File) GetReason() string { return f.Status.Reason }
-
-// // Plan preview the changes to be made.
-// func (f *FileResource) Plan(resource map[string]interface{}) error {
-// 	return nil
-// }
-
-// CopyFile copies the source file to the destination, returning if we changed
-// the contents.
-// func (f *File) CopyFile(src string, dst string) (bool, error) {
-// 	// File doesn't exist - copy it
-// 	if !file.Exists(f.appFs, dst) {
-// 		err := file.Copy(f.appFs, src, dst)
-// 		return true, err
-// 	}
-
-// 	// // Are the files identical?
-// 	// identical, err := file.Identical(src, dst)
-// 	// if err != nil {
-// 	// 	return false, err
-// 	// }
-
-// 	// // If identical no change
-// 	// if identical {
-// 	// 	return false, err
-// 	// }
-
-// 	// // Since they differ we refresh and that's a change
-// 	// err = file.Copy(src, dst)
-// 	// return true, err
-
-// 	return true, nil
-// }

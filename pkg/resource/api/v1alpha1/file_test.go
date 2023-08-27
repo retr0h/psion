@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
@@ -19,7 +19,6 @@ var testFileResourceContent []byte
 
 var _ = Describe("File", func() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-	appFs := afero.NewMemMapFs()
 
 	dir := "/app"
 	filePath := filepath.Join(dir, "filePath")
@@ -33,10 +32,12 @@ spec:
   exists: false
   path: %s
 `, filePath))
-	Context("apply", func() {
-		plan := false
+	Context("plan", func() {
+		plan := true
 
 		When("file exists", func() {
+			appFs := afero.NewMemMapFs()
+
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
 
@@ -46,10 +47,10 @@ spec:
 					[]byte("mockContent"),
 					0o644,
 				)
-				Expect(err).ToNot(HaveOccurred())
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
 			})
 
-			It("should remove file", func() {
+			It("should plan to remove file", func() {
 				var resource api.Manager = NewFile(
 					logger,
 					appFs,
@@ -57,26 +58,28 @@ spec:
 				)
 
 				err := yaml.Unmarshal(testFileResourceContent, resource)
-				Expect(err).ToNot(HaveOccurred())
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 				err = resource.Reconcile()
-				Expect(err).ToNot(HaveOccurred())
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 				got := file.Exists(appFs, filePath)
-				Expect(got).Should(BeFalse())
+				gomega.Expect(got).Should(gomega.BeTrue())
 
-				Expect(resource.GetStatus()).To(Equal(api.Succeeded))
-				Expect(resource.GetMessage()).To(Equal("remove: /app/filePath"))
-				Expect(resource.GetReason()).To(Equal(""))
+				gomega.Expect(resource.GetStatus()).To(gomega.Equal(api.Pending))
+				gomega.Expect(resource.GetMessage()).To(gomega.Equal("file exists"))
+				gomega.Expect(resource.GetReason()).To(gomega.Equal("Plan"))
 			})
 		})
 
 		When("file does not exist", func() {
+			appFs := afero.NewMemMapFs()
+
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
 			})
 
-			It("should not remove file", func() {
+			It("should plan not remove file", func() {
 				var resource api.Manager = NewFile(
 					logger,
 					appFs,
@@ -84,14 +87,14 @@ spec:
 				)
 
 				err := yaml.Unmarshal(testFileResourceContent, resource)
-				Expect(err).ToNot(HaveOccurred())
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
 				err = resource.Reconcile()
-				Expect(err).ToNot(HaveOccurred())
+				gomega.Expect(err).ToNot(gomega.HaveOccurred())
 
-				Expect(resource.GetStatus()).To(Equal(api.Failed))
-				Expect(resource.GetMessage()).To(Equal("remove: /app/filePath"))
-				Expect(resource.GetReason()).To(Equal("does not exist"))
+				gomega.Expect(resource.GetStatus()).To(gomega.Equal(api.Pending))
+				gomega.Expect(resource.GetMessage()).To(gomega.Equal("file does not exist"))
+				gomega.Expect(resource.GetReason()).To(gomega.Equal("Plan"))
 			})
 		})
 	})

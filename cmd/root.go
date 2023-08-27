@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	// "fmt"
+	"log/slog"
 	"os"
-	"strings"
+	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -12,7 +14,7 @@ import (
 var (
 	cfgFile string
 	debug   bool
-	logger  *logrus.Logger
+	logger  *slog.Logger
 )
 
 // rootCmd represents the base command when called without any subcommands.
@@ -38,7 +40,7 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initLogger, initConfig)
+	cobra.OnInitialize(initLogger)
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "psion.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "set log level to debug")
@@ -49,44 +51,16 @@ func init() {
 	}
 }
 
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		viper.AddConfigPath(".")
-		viper.SetConfigName("psion.yaml")
-		viper.SetConfigType("yaml")
-	}
-
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix("psion")
-
-	if err := viper.ReadInConfig(); err != nil {
-		logrus.WithError(err).Fatal("no valid config found")
-	}
-
-	// config = geo.Config{}
-	// if err := viper.Unmarshal(&config); err != nil {
-	// 	logrus.WithError(err).Fatal("failed to unmarshal config")
-	// }
-}
-
 func initLogger() {
-	logLevel := logrus.InfoLevel
+	logLevel := slog.LevelInfo
 	if viper.GetBool("debug") {
-		logLevel = logrus.TraceLevel
+		logLevel = slog.LevelDebug
 	}
 
-	logger = &logrus.Logger{
-		Out: os.Stderr,
-		Formatter: &logrus.TextFormatter{
-			FullTimestamp:             true,
-			DisableLevelTruncation:    true,
-			PadLevelText:              true,
-			EnvironmentOverrideColors: true,
-		},
-		Hooks: make(logrus.LevelHooks),
-		Level: logLevel,
-	}
+	logger = slog.New(
+		tint.NewHandler(os.Stderr, &tint.Options{
+			Level:      logLevel,
+			TimeFormat: time.Kitchen,
+		}),
+	)
 }

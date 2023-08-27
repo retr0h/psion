@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/sirupsen/logrus"
+	"fmt"
+
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -14,15 +15,18 @@ import (
 
 var file string
 
-// resources []api.Manager
-
 // applyCmd represents the status command.
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Apply desired state.",
 	Long: `Make consistent with the desired state.
 `,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// By the time we reach this point, we know that the arguments were
+		// properly parsed, and we don't want to show the usage if an error
+		// occurs.
+		cmd.SilenceUsage = true
+
 		appFs := afero.NewOsFs()
 		plan := false
 
@@ -30,26 +34,20 @@ var applyCmd = &cobra.Command{
 		resources := make([]api.Manager, 0, 1)
 		fileContent, err := fileutil.Read(appFs, file)
 		if err != nil {
-			logrus.WithError(err).
-				WithField("file", file).
-				Fatal("cannot read file")
+			return fmt.Errorf("cannot read file: %w", err)
 		}
 
 		runtimeConfig, err := config.LoadRuntimeConfig(fileContent)
 		if err != nil {
-			logrus.WithError(err).
-				WithField("file", file).
-				Fatal("cannot load file")
+			return fmt.Errorf("cannot load file: %w", err)
 		}
 
 		if runtimeConfig.APIVersion != v1alpha1.FileAPIVersion {
-			logrus.WithField("apiVersion", runtimeConfig.APIVersion).
-				Fatal("invalid api version")
+			return fmt.Errorf("invalid apiVersion: %s", runtimeConfig.APIVersion)
 		}
 
 		if runtimeConfig.Kind != v1alpha1.FileKind {
-			logrus.WithField("kind", runtimeConfig.Kind).
-				Fatal("invalid kind")
+			return fmt.Errorf("invalid kind: %s", runtimeConfig.Kind)
 		}
 
 		var resourceKind api.Manager = v1alpha1.NewFile(
@@ -59,26 +57,25 @@ var applyCmd = &cobra.Command{
 		)
 
 		if err := yaml.Unmarshal(fileContent, resourceKind); err != nil {
-			logrus.WithError(err).
-				WithField("file", file).
-				Fatal("cannot unmarshal file")
+			return fmt.Errorf("cannot unmarshal file: %w", err)
 		}
 		resources = append(resources, resourceKind)
 
 		for _, resource := range resources {
 			if err := resource.Reconcile(); err != nil {
-        logrus.WithError(err).
-          Fatal("cannot reconcile")
-		  }
+				return fmt.Errorf("cannot reconcile: %w", err)
+			}
 		}
+
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(applyCmd)
 
-	rootCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "todo.")
+	applyCmd.PersistentFlags().StringVarP(&file, "file", "f", "", "todo.")
 
 	// todo: shitty name, change
-	_ = rootCmd.MarkPersistentFlagRequired("file")
+	_ = applyCmd.MarkPersistentFlagRequired("file")
 }

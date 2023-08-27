@@ -2,8 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
 	"github.com/retr0h/psion/internal/file"
@@ -23,7 +23,7 @@ type File struct {
 	Status FileStatus
 
 	// logger logger to be used.
-	logger *logrus.Logger
+	logger *slog.Logger
 	// appFs FileSystem abstraction.
 	appFs afero.Fs
 	// plan preview the changes to be made.
@@ -59,7 +59,7 @@ type FileStatus struct {
 
 // NewFile create a new instance of File.
 func NewFile(
-	logger *logrus.Logger,
+	logger *slog.Logger,
 	appFs afero.Fs,
 	plan bool,
 ) *File {
@@ -72,10 +72,11 @@ func NewFile(
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
-	f.logger.WithFields(logrus.Fields{
-		"kind":       f.Kind,
-		"apiVersion": f.APIVersion,
-	}).Info("reconciling")
+	f.logger.Info(
+		"reconciling",
+		slog.String("Kind", f.Kind),
+		slog.String("APIVersion", f.APIVersion),
+	)
 
 	// if exists is false, remove the file and do nothing else
 	if !f.Spec.Exists {
@@ -99,11 +100,12 @@ func (f *File) Reconcile() error {
 		}
 	}
 
-	f.logger.WithFields(logrus.Fields{
-		"Message": f.Status.Message,
-		"Reason":  f.Status.Reason,
-		"Phase":   f.Status.Phase,
-	}).Info("completed")
+	f.logger.Info(
+		"completed",
+		slog.String("Message", f.Status.Message),
+		slog.String("Reason", f.Status.Reason),
+		slog.String("Phase", string(f.Status.Phase)),
+	)
 
 	return nil
 }

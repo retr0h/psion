@@ -3,9 +3,9 @@ module github.com/retr0h/psion
 go 1.21
 
 require (
+	github.com/lmittmann/tint v1.0.1
 	github.com/onsi/ginkgo/v2 v2.9.4
 	github.com/onsi/gomega v1.27.6
-	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0

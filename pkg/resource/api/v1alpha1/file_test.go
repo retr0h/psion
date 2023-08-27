@@ -2,11 +2,12 @@ package v1alpha1
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
@@ -17,9 +18,8 @@ import (
 var testFileResourceContent []byte
 
 var _ = Describe("File", func() {
-	logger := &logrus.Logger{}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	appFs := afero.NewMemMapFs()
-	plan := false
 
 	dir := "/app"
 	filePath := filepath.Join(dir, "filePath")
@@ -34,6 +34,8 @@ spec:
   path: %s
 `, filePath))
 	Context("apply", func() {
+		plan := false
+
 		When("file exists", func() {
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
@@ -70,8 +72,6 @@ spec:
 		})
 
 		When("file does not exist", func() {
-			logger := &logrus.Logger{}
-
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
 			})

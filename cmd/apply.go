@@ -1,17 +1,12 @@
 package cmd
 
 import (
-	"embed"
 	"fmt"
 
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-//go:embed resources/*.yaml
-var resourceFiles embed.FS
-
-// applyCmd represents the status command.
+// applyCmd represents the apply command.
 var applyCmd = &cobra.Command{
 	Use:   "apply",
 	Short: "Apply desired state.",
@@ -23,10 +18,8 @@ var applyCmd = &cobra.Command{
 		// occurs.
 		cmd.SilenceUsage = true
 
-		appFs := afero.NewOsFs()
-
 		plan := false
-		resources, err := loadAllEmbeddedResourceFiles(appFs, resourceFiles, plan)
+		resources, err := loadAllEmbeddedResourceFiles(plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}

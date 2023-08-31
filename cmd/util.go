@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"crypto/sha256"
 	"embed"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"io/fs"
 
-	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
 	"github.com/retr0h/psion/internal/config"
@@ -14,13 +16,11 @@ import (
 )
 
 func loadResourceFile(
-	fs afero.Fs,
-	efs embed.FS,
 	filePath string,
 	plan bool,
 ) (api.Manager, error) {
 	// read from the embedded fs
-	fileContent, err := efs.ReadFile(filePath)
+	fileContent, err := eFs.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read file: %w", err)
 	}
@@ -31,7 +31,11 @@ func loadResourceFile(
 	}
 
 	if runtimeConfig.APIVersion != v1alpha1.FileAPIVersion {
-		return nil, fmt.Errorf("invalid apiVersion: %s file: %s", runtimeConfig.APIVersion, filePath)
+		return nil, fmt.Errorf(
+			"invalid apiVersion: %s file: %s",
+			runtimeConfig.APIVersion,
+			filePath,
+		)
 	}
 
 	// currently only support the File Kind
@@ -41,7 +45,7 @@ func loadResourceFile(
 
 	var resourceKind api.Manager = v1alpha1.NewFile(
 		logger,
-		fs,
+		appFs,
 		plan,
 	)
 
@@ -52,14 +56,25 @@ func loadResourceFile(
 	return resourceKind, nil
 }
 
-func getAllEmbeddedResourceFiles(efs embed.FS) ([]string, error) {
-	var files []string
-	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
+func getAllEmbeddedResourceFiles() ([]*ResourceFilesInfo, error) {
+	var files []*ResourceFilesInfo
+	if err := fs.WalkDir(eFs, ".", func(filePath string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
 
-		files = append(files, path)
+		sHA256String, err := hashEmbededFile(eFs, filePath)
+		if err != nil {
+			return fmt.Errorf("cannot hash file: %w", err)
+		}
+
+		resourceFilesInfo := &ResourceFilesInfo{
+			Path:     filePath,
+			Checksum: sHA256String,
+			Type:     "SHA256",
+		}
+
+		files = append(files, resourceFilesInfo)
 
 		return nil
 	}); err != nil {
@@ -70,18 +85,16 @@ func getAllEmbeddedResourceFiles(efs embed.FS) ([]string, error) {
 }
 
 func loadAllEmbeddedResourceFiles(
-	fs afero.Fs,
-	efs embed.FS,
 	plan bool,
 ) ([]api.Manager, error) {
-	files, err := getAllEmbeddedResourceFiles(resourceFiles)
+	files, err := getAllEmbeddedResourceFiles()
 	if err != nil {
 		return nil, fmt.Errorf("cannot walk dir: %w", err)
 	}
 
 	resources := make([]api.Manager, 0, 1)
-	for _, filePath := range files {
-		resourceFile, err := loadResourceFile(fs, efs, filePath, plan)
+	for _, resourceFileInfo := range files {
+		resourceFile, err := loadResourceFile(resourceFileInfo.Path, plan)
 		if err != nil {
 			return nil, fmt.Errorf("cannot load resource file: %w", err)
 		}
@@ -89,4 +102,27 @@ func loadAllEmbeddedResourceFiles(
 	}
 
 	return resources, nil
+}
+
+func hashEmbededFile(
+	eFs embed.FS,
+	filePath string,
+) (string, error) {
+	var returnSHA256String string
+
+	file, err := eFs.Open(filePath)
+	if err != nil {
+		return returnSHA256String, err
+	}
+
+	defer func() { _ = file.Close() }()
+
+	hash := sha256.New()
+
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+	returnSHA256String = hex.EncodeToString(hash.Sum(nil))
+
+	return returnSHA256String, nil
 }

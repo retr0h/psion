@@ -1,6 +1,7 @@
 package file
 
 import (
+	"fmt"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -30,6 +31,10 @@ var _ = Describe("Read", func() {
 			got, err := Read(appFs, filePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(string(got)).Should(Equal("mockContent"))
+
+			got, err = Read(appFs, filePath)
+			fmt.Println(got)
+			fmt.Println(err)
 		})
 	})
 

@@ -26,6 +26,10 @@ Build the binary (eventually move to `psion build`):
 
     $ task build
 
+Review the embedded files:
+
+    $ dist/psion version | jq '.resource_files'
+
 Preview the changes to be made:
 
     $ dist/psion plan

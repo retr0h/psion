@@ -11,7 +11,10 @@ import (
 )
 
 // Read reads the contents of the filePath.
-func Read(fs afero.Fs, filePath string) ([]byte, error) {
+func Read(
+	fs afero.Fs,
+	filePath string,
+) ([]byte, error) {
 	f, err := fs.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -44,7 +47,11 @@ func Read(fs afero.Fs, filePath string) ([]byte, error) {
 }
 
 // Copy copies the contents of the src file to the dst file.
-func Copy(fs afero.Fs, src string, dst string) error {
+func Copy(
+	fs afero.Fs,
+	src string,
+	dst string,
+) error {
 	r, err := fs.Open(src)
 	if err != nil {
 		return err
@@ -67,7 +74,10 @@ func Copy(fs afero.Fs, src string, dst string) error {
 
 // test this TODO
 // Remove removes the named file if exists.
-func Remove(fs afero.Fs, filePath string) error {
+func Remove(
+	fs afero.Fs,
+	filePath string,
+) error {
 	if err := fs.Remove(filePath); err != nil {
 		return err
 	}
@@ -76,7 +86,10 @@ func Remove(fs afero.Fs, filePath string) error {
 }
 
 // Exists reports if the named file or directory exists.
-func Exists(fs afero.Fs, filePath string) bool {
+func Exists(
+	fs afero.Fs,
+	filePath string,
+) bool {
 	if _, err := fs.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return false
@@ -86,7 +99,10 @@ func Exists(fs afero.Fs, filePath string) bool {
 }
 
 // Size returns the named files size in bytes.
-func Size(fs afero.Fs, filePath string) (int64, error) {
+func Size(
+	fs afero.Fs,
+	filePath string,
+) (int64, error) {
 	fi, err := fs.Stat(filePath)
 	if err != nil {
 		return 0, err
@@ -96,7 +112,10 @@ func Size(fs afero.Fs, filePath string) (int64, error) {
 }
 
 // HashFile returns the SHA1-hash of the contents of the specified file.
-func HashFile(fs afero.Fs, filePath string) (string, error) {
+func HashFile(
+	fs afero.Fs,
+	filePath string,
+) (string, error) {
 	var returnSHA1String string
 
 	file, err := fs.Open(filePath)
@@ -120,7 +139,11 @@ func HashFile(fs afero.Fs, filePath string) (string, error) {
 
 // Identical compares the contents of the two specified files, returning
 // true if they're identical.
-func Identical(fs afero.Fs, a string, b string) (bool, error) {
+func Identical(
+	fs afero.Fs,
+	a string,
+	b string,
+) (bool, error) {
 	hashA, errA := HashFile(fs, a)
 	if errA != nil {
 		return false, errA

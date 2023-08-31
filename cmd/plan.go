@@ -3,11 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-// planCmd represents the status command.
+// planCmd represents the plan command.
 var planCmd = &cobra.Command{
 	Use:   "plan",
 	Short: "Preview the changes to be made.",
@@ -19,10 +18,8 @@ var planCmd = &cobra.Command{
 		// occurs.
 		cmd.SilenceUsage = true
 
-		appFs := afero.NewOsFs()
-
 		plan := true
-		resources, err := loadAllEmbeddedResourceFiles(appFs, resourceFiles, plan)
+		resources, err := loadAllEmbeddedResourceFiles(plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}

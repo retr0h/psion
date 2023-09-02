@@ -28,7 +28,22 @@ Build the binary (eventually move to `psion build`):
 
 Review the embedded files:
 
-    $ dist/psion version | jq '.resource_files'
+    $ dist/psion version | jq
+
+```json
+{
+  "version": "0.0.1-next",
+  "commit": "c0eefe4be2baf6a45e10236382a89ad04176b2df",
+  "date": "2023-09-02T17:43:50Z",
+  "resource_files": [
+    {
+      "path": "resources/file.yaml",
+      "checksum": "6ebc658064483974a0d371a9b56fa021251f9fd61c30dbcd5be9ac397197909f",
+      "type": "SHA256"
+    }
+  ]
+}
+```
 
 Preview the changes to be made:
 

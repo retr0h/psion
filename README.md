@@ -22,6 +22,21 @@ Inspired by [Goss][], designed to resemble [Kubernetes][].
 
 ## Usage
 
+Create a resource file(s) in the resources.d directory:
+
+```bash
+cat <<EOF >resources.d/01-remove-file.yaml
+---
+apiVersion: files.psion.io/v1alpha1
+kind: File
+metadata:
+  name: name
+spec:
+  path: /tmp/foo
+  exists: false
+EOF
+```
+
 Build the binary (eventually move to `psion build`):
 
     $ task build
@@ -33,11 +48,11 @@ Review the embedded files:
 ```json
 {
   "version": "0.0.1-next",
-  "commit": "c0eefe4be2baf6a45e10236382a89ad04176b2df",
-  "date": "2023-09-02T17:43:50Z",
+  "commit": "088cde022f233c2b3c14581a15f069250b7fad08",
+  "date": "2023-09-02T20:08:14Z",
   "resource_files": [
     {
-      "path": "resources/file.yaml",
+      "path": "resources/01-remove-file.yaml",
       "checksum": "6ebc658064483974a0d371a9b56fa021251f9fd61c30dbcd5be9ac397197909f",
       "type": "SHA256"
     }
@@ -67,10 +82,6 @@ List helpful targets:
 
     $ task
 
-## Examples
-
-A common usage will look something like this:
-
 ## License
 
 The [MIT][] License.
@@ -79,3 +90,4 @@ The [MIT][] License.
 [Kubernetes]: https://kubernetes.io/
 [psionics]: https://en.wikipedia.org/wiki/Psionics
 [MIT]: LICENSE
+

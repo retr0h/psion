@@ -2,43 +2,44 @@ package v1alpha1
 
 import (
 	"github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/internal/state"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 const (
-	FileDoStatus    StateType = "Unknown"
-	FileDoExists    StateType = "Exists"
-	FileDoNotExists StateType = "DoesNotExists"
+	FileDoStatus    state.StateType = "Unknown"
+	FileDoExists    state.StateType = "Exists"
+	FileDoNotExists state.StateType = "DoesNotExists"
 
-	FilePlanStatus      EventType = "FilePlanStatus"
-	FilePlanExists      EventType = "FilePlanExists"
-	FilePlanDoNotExists EventType = "FilePlanDoNotExists"
+	FilePlanStatus      state.EventType = "FilePlanStatus"
+	FilePlanExists      state.EventType = "FilePlanExists"
+	FilePlanDoNotExists state.EventType = "FilePlanDoNotExists"
 )
 
-func FilePlanRemoveFSM() *StateMachine {
-	return &StateMachine{
-		States: States{
-			Default: State{
-				Events: Events{
+func FilePlanRemoveFSM() *state.StateMachine {
+	return &state.StateMachine{
+		States: state.States{
+			state.Defaults: state.State{
+				Events: state.Events{
 					FilePlanStatus: FileDoStatus,
 				},
 			},
-			FileDoStatus: State{
+			FileDoStatus: state.State{
 				Action: &FilePlanStatusAction{},
-				Events: Events{
+				Events: state.Events{
 					FilePlanExists:      FileDoExists,
 					FilePlanDoNotExists: FileDoNotExists,
 				},
 			},
-			FileDoExists: State{
+			FileDoExists: state.State{
 				Action: &FilePlanExistsAction{},
-				Events: Events{
+				Events: state.Events{
 					FilePlanExists: FileDoExists,
 				},
 			},
-			FileDoNotExists: State{
+			FileDoNotExists: state.State{
 				Action: &FilePlanNoExistsAction{},
-				Events: Events{
+				Events: state.Events{
 					FilePlanDoNotExists: FileDoNotExists,
 				},
 			},
@@ -51,7 +52,9 @@ func FilePlanRemoveFSM() *StateMachine {
 type FilePlanStatusAction struct{}
 
 // Execute implementation perfored on entering the FilePlanStatus event.
-func (p *FilePlanStatusAction) Execute(eventCtx EventContext) EventType {
+func (p *FilePlanStatusAction) Execute(
+	eventCtx state.EventContext,
+) state.EventType {
 	resource := eventCtx.(api.Manager)
 	resourceSpec := resource.GetSpec()
 	fileResourceSpec := resourceSpec.(FileSpec)
@@ -67,23 +70,27 @@ func (p *FilePlanStatusAction) Execute(eventCtx EventContext) EventType {
 type FilePlanNoExistsAction struct{}
 
 // Execute implementation perfored on entering the FilePlanNoExists event.
-func (p *FilePlanNoExistsAction) Execute(eventCtx EventContext) EventType {
+func (p *FilePlanNoExistsAction) Execute(
+	eventCtx state.EventContext,
+) state.EventType {
 	resource := eventCtx.(api.Manager)
 	resource.SetStatus(api.Pending)
 	resource.SetMessage("file does not exist")
 
-	return NoOp
+	return state.NoOp
 }
 
 // FilePlanExistsAction represents the action executed on entering the Exists state.
 type FilePlanExistsAction struct{}
 
 // Execute implementation perfored on entering the FilePlanExistss action.
-func (p *FilePlanExistsAction) Execute(eventCtx EventContext) EventType {
+func (p *FilePlanExistsAction) Execute(
+	eventCtx state.EventContext,
+) state.EventType {
 	resource := eventCtx.(api.Manager)
 
 	resource.SetStatus(api.Pending)
 	resource.SetMessage("file exists")
 
-	return NoOp
+	return state.NoOp
 }

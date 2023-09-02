@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/afero"
 
-	// "github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

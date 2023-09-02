@@ -1,0 +1,8 @@
+---
+apiVersion: files.psion.io/v1alpha1
+kind: File
+metadata:
+  name: name
+spec:
+  path: /tmp/foo
+  exists: false

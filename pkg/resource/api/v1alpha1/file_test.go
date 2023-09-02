@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
@@ -47,7 +47,7 @@ spec:
 					[]byte("mockContent"),
 					0o644,
 				)
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 			})
 
 			It("should plan to remove file", func() {
@@ -58,17 +58,17 @@ spec:
 				)
 
 				err := yaml.Unmarshal(testFileResourceContent, resource)
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 
 				err = resource.Reconcile()
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 
 				got := file.Exists(appFs, filePath)
-				gomega.Expect(got).Should(gomega.BeTrue())
+				Expect(got).Should(BeTrue())
 
-				gomega.Expect(resource.GetStatus()).To(gomega.Equal(api.Pending))
-				gomega.Expect(resource.GetMessage()).To(gomega.Equal("file exists"))
-				gomega.Expect(resource.GetReason()).To(gomega.Equal("Plan"))
+				Expect(resource.GetStatus()).To(Equal(api.Pending))
+				Expect(resource.GetMessage()).To(Equal("file exists"))
+				Expect(resource.GetReason()).To(Equal("Plan"))
 			})
 		})
 
@@ -87,14 +87,14 @@ spec:
 				)
 
 				err := yaml.Unmarshal(testFileResourceContent, resource)
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 
 				err = resource.Reconcile()
-				gomega.Expect(err).ToNot(gomega.HaveOccurred())
+				Expect(err).ToNot(HaveOccurred())
 
-				gomega.Expect(resource.GetStatus()).To(gomega.Equal(api.Pending))
-				gomega.Expect(resource.GetMessage()).To(gomega.Equal("file does not exist"))
-				gomega.Expect(resource.GetReason()).To(gomega.Equal("Plan"))
+				Expect(resource.GetStatus()).To(Equal(api.Pending))
+				Expect(resource.GetMessage()).To(Equal("file does not exist"))
+				Expect(resource.GetReason()).To(Equal("Plan"))
 			})
 		})
 	})

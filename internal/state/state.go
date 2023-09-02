@@ -1,4 +1,4 @@
-package v1alpha1
+package state
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	// Default represents the default state of the system.
-	Default StateType = ""
+	// Defaults represents the default state of the system.
+	Defaults StateType = ""
 
 	// NoOp represents a no-op event.
 	NoOp EventType = "NoOp"
@@ -16,6 +16,9 @@ const (
 // ErrEventRejected is the error returned when the state machine cannot process
 // an event in the state that it is in.
 var ErrEventRejected = errors.New("event rejected")
+
+// ErrConfiguration is the error returned when there is a configuration issue.
+var ErrConfiguration = errors.New("configuration error")
 
 // StateType represents an extensible state type in the state machine.
 type StateType string
@@ -60,7 +63,9 @@ type StateMachine struct {
 
 // getNextState returns the next state for the event given the machine's current
 // state, or an error if the event can't be handled in the given state.
-func (s *StateMachine) getNextState(event EventType) (StateType, error) {
+func (s *StateMachine) getNextState(
+	event EventType,
+) (StateType, error) {
 	if state, ok := s.States[s.Current]; ok {
 		if state.Events != nil {
 			if next, ok := state.Events[event]; ok {
@@ -68,11 +73,14 @@ func (s *StateMachine) getNextState(event EventType) (StateType, error) {
 			}
 		}
 	}
-	return Default, ErrEventRejected
+	return Defaults, ErrEventRejected
 }
 
 // SendEvent sends an event to the state machine.
-func (s *StateMachine) SendEvent(event EventType, eventCtx EventContext) error {
+func (s *StateMachine) SendEvent(
+	event EventType,
+	eventCtx EventContext,
+) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -86,7 +94,7 @@ func (s *StateMachine) SendEvent(event EventType, eventCtx EventContext) error {
 		// Identify the state definition for the next state.
 		state, ok := s.States[nextState]
 		if !ok || state.Action == nil {
-			// configuration error
+			return ErrConfiguration
 		}
 
 		// Transition over to the next state.

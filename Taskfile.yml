@@ -94,5 +94,6 @@ tasks:
   build:
     desc: Build ARCH compatible binary.
     cmds:
+      - rm -f cmd/resources/*
       - cp examples/*.yaml cmd/resources/
       - goreleaser release --snapshot --clean

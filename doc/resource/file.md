@@ -1,8 +1,10 @@
-# Examples
+# Resource
 
 ## File
 
-Create and/or update a file with the specified contents:
+### Remove
+
+Remove the specified file:
 
 ```yaml
 apiVersion: files.psion.io/v1alpha1
@@ -10,9 +12,8 @@ kind: File
 metadata:
   name: name
 spec:
-  path: /etc/passwd
-  exists: true
-  mode: "0644"
+  path: /tmp/foo
+  exists: false
 ```
 
 Reference material

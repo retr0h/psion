@@ -1,2 +1,4 @@
 cmd/resources/
 dist/
+cover.out
+report.xml

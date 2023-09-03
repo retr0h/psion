@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -10,12 +11,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ErrNotImplemented is the error returned when feature not implemented.
+var ErrNotImplemented = errors.New("not implemented")
+
 // File enables declarative updates to File.
 type File struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	metav1.TypeMeta   `json:",omitempty,inline"`
 
-	// Spec represents specification of the desired File behavior
+	// Spec represents specification of the desired File behavior.
 	Spec FileSpec `json:"spec"`
 
 	// Status contains status of the File.
@@ -72,16 +76,16 @@ func NewFile(
 // GetStatus the status property.
 func (f *File) GetStatus() api.Phase { return f.Status.Phase }
 
-// Set the status property.
+// SetStatus set the status property.
 func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
 
 // GetStatusAsString the status property cast to a string.
 func (f *File) GetStatusAsString() string { return string(f.Status.Phase) }
 
-// Get the message property.
+// GetMessage get the message property.
 func (f *File) GetMessage() string { return f.Status.Message }
 
-// Set the message property.
+// SetMessage set the message property.
 func (f *File) SetMessage(message string) { f.Status.Message = message }
 
 // GetReason the reason property.
@@ -95,26 +99,26 @@ func (f *File) GetFs() afero.Fs { return f.appFs }
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
-	f.logger.Info(
-		"reconciling",
-		slog.String("Kind", f.Kind),
-		slog.String("APIVersion", f.APIVersion),
-	)
-
-	// Spec.File.Path should be removed
+	var err error
+	// User requeted file be deleted
 	if !f.Spec.Exists {
 		if f.plan {
 			// Plan the removal
 			f.Status.Reason = "Plan"
 			planFSM := FilePlanRemoveFSM()
-			err := planFSM.SendEvent(FilePlanStatus, f)
-			if err != nil {
-				fmt.Errorf("Couldn't set the initial state of the state machine, err: %w", err)
-			}
+			err = planFSM.SendEvent(FilePlanStatusEvent, f)
 		} else {
 			// Do the removal
-			fmt.Println("IMPLEMENT")
+			f.Status.Reason = "Apply"
+			fSM := FileRemoveFSM()
+			err = fSM.SendEvent(FileStatusEvent, f)
 		}
+	} else {
+		return ErrNotImplemented
+	}
+
+	if err != nil {
+		return fmt.Errorf("Cannot set the initial state of the state machine, err: %w", err)
 	}
 
 	f.logger.Info(
@@ -122,6 +126,8 @@ func (f *File) Reconcile() error {
 		slog.String("Message", f.GetMessage()),
 		slog.String("Reason", f.GetReason()),
 		slog.String("Phase", f.GetStatusAsString()),
+		slog.String("Kind", f.Kind),
+		slog.String("APIVersion", f.APIVersion),
 		slog.Group(FileKind,
 			slog.String("Path", f.Spec.Path),
 			slog.Bool("Exists", f.Spec.Exists),

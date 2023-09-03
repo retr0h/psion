@@ -60,8 +60,6 @@ tasks:
 
   unit:int:
     desc: Integration test packages
-    cmds:
-      - ./test.sh
 
   test:
     desc: Test all

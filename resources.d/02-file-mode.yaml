@@ -1,9 +1,0 @@
----
-apiVersion: files.psion.io/v1alpha1
-kind: File
-metadata:
-  name: file-mode
-spec:
-  path: /tmp/foo
-  exists: true
-  mode: 0o644

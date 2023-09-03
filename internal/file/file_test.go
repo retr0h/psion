@@ -2,6 +2,7 @@ package file
 
 import (
 	"fmt"
+	"io/fs"
 	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -231,6 +232,41 @@ var _ = Describe("Identical", func() {
 			appFs := afero.NewMemMapFs()
 
 			_, err := Identical(appFs, "does-not-exist-1", "does-not-exist-2")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})
+
+var _ = Describe("Mode", func() {
+	When("file exists", func() {
+		appFs := afero.NewMemMapFs()
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
+
+		BeforeEach(func() {
+			_ = appFs.MkdirAll(dir, 0o755)
+
+			err := afero.WriteFile(
+				appFs,
+				filePath,
+				[]byte("mockContent"),
+				0o644,
+			)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should return FileMode", func() {
+			got, err := Mode(appFs, filePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(got).Should(Equal(fs.FileMode(0o644)))
+		})
+	})
+
+	When("file does not exist", func() {
+		It("should have error", func() {
+			appFs := afero.NewMemMapFs()
+
+			_, err := Mode(appFs, "does-not-exist-1")
 			Expect(err).To(HaveOccurred())
 		})
 	})

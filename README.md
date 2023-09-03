@@ -25,12 +25,12 @@ Inspired by [Goss][], designed to resemble [Kubernetes][].
 Create a resource file(s) in the resources.d directory:
 
 ```bash
-cat <<EOF >resources.d/01-remove-file.yaml
+cat <<EOF >resources.d/01-file-remove.yaml
 ---
 apiVersion: files.psion.io/v1alpha1
 kind: File
 metadata:
-  name: name
+  name: file-remove
 spec:
   path: /tmp/foo
   exists: false
@@ -52,7 +52,7 @@ Review the embedded files:
   "date": "2023-09-02T20:08:14Z",
   "resource_files": [
     {
-      "path": "resources/01-remove-file.yaml",
+      "path": "resources/01-file-remove.yaml",
       "checksum": "6ebc658064483974a0d371a9b56fa021251f9fd61c30dbcd5be9ac397197909f",
       "type": "SHA256"
     }

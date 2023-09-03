@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/spf13/afero"
@@ -12,21 +13,21 @@ import (
 
 // Read reads the contents of the filePath.
 func Read(
-	fs afero.Fs,
+	appFs afero.Fs,
 	filePath string,
 ) ([]byte, error) {
-	f, err := fs.Open(filePath)
+	f, err := appFs.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = f.Close() }()
 
-	fileinfo, err := f.Stat()
+	fileInfo, err := f.Stat()
 	if err != nil {
 		return nil, err
 	}
 
-	filesize := fileinfo.Size()
+	filesize := fileInfo.Size()
 	buf := make([]byte, filesize)
 
 	for {
@@ -48,17 +49,17 @@ func Read(
 
 // Copy copies the contents of the src file to the dst file.
 func Copy(
-	fs afero.Fs,
+	appFs afero.Fs,
 	src string,
 	dst string,
 ) error {
-	r, err := fs.Open(src)
+	r, err := appFs.Open(src)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = r.Close() }()
 
-	w, err := fs.Create(dst)
+	w, err := appFs.Create(dst)
 	if err != nil {
 		return err
 	}
@@ -75,10 +76,10 @@ func Copy(
 // test this TODO
 // Remove removes the named file if exists.
 func Remove(
-	fs afero.Fs,
+	appFs afero.Fs,
 	filePath string,
 ) error {
-	if err := fs.Remove(filePath); err != nil {
+	if err := appFs.Remove(filePath); err != nil {
 		return err
 	}
 
@@ -87,10 +88,10 @@ func Remove(
 
 // Exists reports if the named file or directory exists.
 func Exists(
-	fs afero.Fs,
+	appFs afero.Fs,
 	filePath string,
 ) bool {
-	if _, err := fs.Stat(filePath); err != nil {
+	if _, err := appFs.Stat(filePath); err != nil {
 		if os.IsNotExist(err) {
 			return false
 		}
@@ -100,25 +101,25 @@ func Exists(
 
 // Size returns the named files size in bytes.
 func Size(
-	fs afero.Fs,
+	appFs afero.Fs,
 	filePath string,
 ) (int64, error) {
-	fi, err := fs.Stat(filePath)
+	fileInfo, err := appFs.Stat(filePath)
 	if err != nil {
 		return 0, err
 	}
 
-	return fi.Size(), nil
+	return fileInfo.Size(), nil
 }
 
 // HashFile returns the SHA1-hash of the contents of the specified file.
 func HashFile(
-	fs afero.Fs,
+	appFs afero.Fs,
 	filePath string,
 ) (string, error) {
 	var returnSHA1String string
 
-	file, err := fs.Open(filePath)
+	file, err := appFs.Open(filePath)
 	if err != nil {
 		return returnSHA1String, err
 	}
@@ -140,16 +141,16 @@ func HashFile(
 // Identical compares the contents of the two specified files, returning
 // true if they're identical.
 func Identical(
-	fs afero.Fs,
+	appFs afero.Fs,
 	a string,
 	b string,
 ) (bool, error) {
-	hashA, errA := HashFile(fs, a)
+	hashA, errA := HashFile(appFs, a)
 	if errA != nil {
 		return false, errA
 	}
 
-	hashB, errB := HashFile(fs, b)
+	hashB, errB := HashFile(appFs, b)
 	if errB != nil {
 		return false, errB
 	}
@@ -161,4 +162,17 @@ func Identical(
 	}
 
 	return false, nil
+}
+
+// Mode returns the named files mode.
+func Mode(
+	appFs afero.Fs,
+	filePath string,
+) (fs.FileMode, error) {
+	fileInfo, err := appFs.Stat(filePath)
+	if err != nil {
+		return 0, err
+	}
+
+	return fileInfo.Mode().Perm(), nil
 }

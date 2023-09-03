@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/spf13/afero"
@@ -91,34 +90,16 @@ func (f *File) SetMessage(message string) { f.Status.Message = message }
 // GetReason the reason property.
 func (f *File) GetReason() string { return f.Status.Reason }
 
-// GetSpec the spec property.
-func (f *File) GetSpec() interface{} { return f.Spec }
-
-// GetFs the appFs property.
-func (f *File) GetFs() afero.Fs { return f.appFs }
+// SetReason set the reason property.
+func (f *File) SetReason(reason string) { f.Status.Reason = reason }
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
-	var err error
 	// User requeted file be deleted
 	if !f.Spec.Exists {
-		if f.plan {
-			// Plan the removal
-			f.Status.Reason = "Plan"
-			planFSM := FilePlanRemoveFSM()
-			err = planFSM.SendEvent(FilePlanStatusEvent, f)
-		} else {
-			// Do the removal
-			f.Status.Reason = "Apply"
-			fSM := FileRemoveFSM()
-			err = fSM.SendEvent(FileStatusEvent, f)
-		}
+		f.fileRemoveHandler()
 	} else {
 		return ErrNotImplemented
-	}
-
-	if err != nil {
-		return fmt.Errorf("Cannot set the initial state of the state machine, err: %w", err)
 	}
 
 	f.logger.Info(

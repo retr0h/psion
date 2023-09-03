@@ -1,9 +1,5 @@
 package api
 
-import (
-	"github.com/spf13/afero"
-)
-
 // These are the valid statuses of the resource.
 const (
 	// Pending means the declared changes have yet to be made.
@@ -29,6 +25,5 @@ type Manager interface {
 	GetMessage() string
 	SetMessage(message string)
 	GetReason() string
-	GetSpec() interface{}
-	GetFs() afero.Fs
+	SetReason(reason string)
 }

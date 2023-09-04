@@ -67,8 +67,15 @@ spec:
 				Expect(got).Should(BeTrue())
 
 				Expect(resource.GetStatus()).To(Equal(api.Pending))
-				Expect(resource.GetMessage()).To(Equal("file exists"))
-				Expect(resource.GetReason()).To(Equal("Plan"))
+
+				conditions := resource.GetStatusConditions()
+				Expect(conditions).To(HaveLen(1))
+				Expect(conditions[0].GetType()).To(Equal("Remove"))
+				Expect(conditions[0].GetStatus()).To(Equal(api.Pending))
+				Expect(conditions[0].GetMessage()).To(Equal("file exists"))
+				Expect(conditions[0].GetReason()).To(Equal(Plan))
+				Expect(conditions[0].GetGot()).To(Equal("file exists"))
+				Expect(conditions[0].GetWant()).To(Equal(NoOp))
 			})
 		})
 
@@ -93,8 +100,15 @@ spec:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(resource.GetStatus()).To(Equal(api.Pending))
-				Expect(resource.GetMessage()).To(Equal("file does not exist"))
-				Expect(resource.GetReason()).To(Equal("Plan"))
+
+				conditions := resource.GetStatusConditions()
+				Expect(conditions).To(HaveLen(1))
+				Expect(conditions[0].GetType()).To(Equal("Remove"))
+				Expect(conditions[0].GetStatus()).To(Equal(api.Pending))
+				Expect(conditions[0].GetMessage()).To(Equal("file does not exist"))
+				Expect(conditions[0].GetReason()).To(Equal(Plan))
+				Expect(conditions[0].GetGot()).To(Equal("file does not exist"))
+				Expect(conditions[0].GetWant()).To(Equal(NoOp))
 			})
 		})
 	})
@@ -134,8 +148,15 @@ spec:
 				Expect(got).Should(BeFalse())
 
 				Expect(resource.GetStatus()).To(Equal(api.Succeeded))
-				Expect(resource.GetMessage()).To(Equal("file removed"))
-				Expect(resource.GetReason()).To(Equal("Apply"))
+
+				conditions := resource.GetStatusConditions()
+				Expect(conditions).To(HaveLen(1))
+				Expect(conditions[0].GetType()).To(Equal("Remove"))
+				Expect(conditions[0].GetStatus()).To(Equal(api.Succeeded))
+				Expect(conditions[0].GetMessage()).To(Equal("file removed"))
+				Expect(conditions[0].GetReason()).To(Equal(Apply))
+				Expect(conditions[0].GetGot()).To(Equal("file exists"))
+				Expect(conditions[0].GetWant()).To(Equal("file removed"))
 			})
 		})
 
@@ -160,8 +181,15 @@ spec:
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(resource.GetStatus()).To(Equal(api.Succeeded))
-				Expect(resource.GetMessage()).To(Equal("file does not exist"))
-				Expect(resource.GetReason()).To(Equal("Apply"))
+
+				conditions := resource.GetStatusConditions()
+				Expect(conditions).To(HaveLen(1))
+				Expect(conditions[0].GetType()).To(Equal("Remove"))
+				Expect(conditions[0].GetStatus()).To(Equal(api.Succeeded))
+				Expect(conditions[0].GetMessage()).To(Equal("file does not exist"))
+				Expect(conditions[0].GetReason()).To(Equal(Apply))
+				Expect(conditions[0].GetGot()).To(Equal("file does not exist"))
+				Expect(conditions[0].GetWant()).To(Equal(NoOp))
 			})
 		})
 	})

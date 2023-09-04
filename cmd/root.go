@@ -13,9 +13,8 @@ import (
 )
 
 var (
-	cfgFile string
-	debug   bool
-	logger  *slog.Logger
+	debug  bool
+	logger *slog.Logger
 	//go:embed resources/*.yaml
 	eFs   embed.FS
 	appFs afero.Fs
@@ -48,7 +47,6 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initLogger)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "psion.yaml", "config file")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "set log level to debug")
 
 	// bind flags to config

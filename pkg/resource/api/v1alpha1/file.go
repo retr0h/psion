@@ -13,16 +13,24 @@ import (
 // ErrNotImplemented is the error returned when feature not implemented.
 var ErrNotImplemented = errors.New("not implemented")
 
+const (
+	// NoOp represents a no-op event.
+	NoOp string = "NoOp"
+	// Plan represents the changes to make consistent with the desired state.
+	Plan string = "Plan"
+	// Apply represents the changes to make the desired state.
+	Apply string = "Apply"
+)
+
 // File enables declarative updates to File.
 type File struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	metav1.TypeMeta   `json:",omitempty,inline"`
 
 	// Spec represents specification of the desired File behavior.
-	Spec FileSpec `json:"spec"`
-
+	Spec *FileSpec `json:"spec"`
 	// Status contains status of the File.
-	Status FileStatus
+	Status *api.Status
 
 	// logger logger to be used.
 	logger *slog.Logger
@@ -49,16 +57,6 @@ type FileSpec struct {
 	// Skip bool `json:"skip,omitempty"`
 }
 
-// FileStatus contains status of the File.
-type FileStatus struct {
-	// Phase sets `phase` as .status.Phase of the resource.
-	Phase api.Phase
-	// A human readable message indicating details about the transition.
-	Message string
-	// The reason for the condition's last transition.
-	Reason string
-}
-
 // NewFile create a new instance of File.
 func NewFile(
 	logger *slog.Logger,
@@ -66,6 +64,10 @@ func NewFile(
 	plan bool,
 ) *File {
 	return &File{
+		Status: &api.Status{
+			Conditions: make([]api.StatusConditions, 0, 1),
+		},
+		Spec:   &FileSpec{},
 		plan:   plan,
 		logger: logger,
 		appFs:  appFs,
@@ -78,42 +80,74 @@ func (f *File) GetStatus() api.Phase { return f.Status.Phase }
 // SetStatus set the status property.
 func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
 
-// GetStatusAsString the status property cast to a string.
-func (f *File) GetStatusAsString() string { return string(f.Status.Phase) }
+// GetStatusString the status property as a string.
+func (f *File) GetStatusString() string { return string(f.Status.Phase) }
 
-// GetMessage get the message property.
-func (f *File) GetMessage() string { return f.Status.Message }
+// GetStatusConditions the conditions property.
+func (f *File) GetStatusConditions() []api.StatusConditions { return f.Status.Conditions }
 
-// SetMessage set the message property.
-func (f *File) SetMessage(message string) { f.Status.Message = message }
+// SetStatusCondition set the status condition property.
+func (f *File) SetStatusCondition(
+	statusType string,
+	status api.Phase,
+	message string,
+	reason string,
+	got string,
+	want string,
+) {
+	fileStatusConditions := api.StatusConditions{
+		Type:    statusType,
+		Status:  status,
+		Message: message,
+		Reason:  reason,
+		Got:     got,
+		Want:    want,
+	}
 
-// GetReason the reason property.
-func (f *File) GetReason() string { return f.Status.Reason }
-
-// SetReason set the reason property.
-func (f *File) SetReason(reason string) { f.Status.Reason = reason }
+	conditions := f.Status.Conditions
+	conditions = append(conditions, fileStatusConditions)
+	f.Status.Conditions = conditions
+}
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
-	// User requeted file be deleted
 	if !f.Spec.Exists {
+		// file should be deleted
 		f.fileRemoveHandler()
 	} else {
+		// existing file should be modified
 		return ErrNotImplemented
 	}
 
 	f.logger.Info(
 		"completed",
-		slog.String("Message", f.GetMessage()),
-		slog.String("Reason", f.GetReason()),
-		slog.String("Phase", f.GetStatusAsString()),
+		slog.String("Status", f.GetStatusString()),
 		slog.String("Kind", f.Kind),
 		slog.String("APIVersion", f.APIVersion),
 		slog.Group(FileKind,
 			slog.String("Path", f.Spec.Path),
 			slog.Bool("Exists", f.Spec.Exists),
 		),
+		slog.Group("Conditions", f.logStatusConditionGroups()...),
 	)
 
 	return nil
+}
+
+func (f *File) logStatusConditionGroups() []any {
+	var logGroups []any
+	for _, condition := range f.Status.Conditions {
+		group := slog.Group(condition.GetType(),
+			slog.String("Type", condition.GetType()),
+			slog.String("Status", condition.GetStatusString()),
+			slog.String("Message", condition.GetMessage()),
+			slog.String("Reason", condition.GetReason()),
+			slog.String("Got", condition.GetGot()),
+			slog.String("Want", condition.GetWant()),
+		)
+
+		logGroups = append(logGroups, group)
+	}
+
+	return logGroups
 }

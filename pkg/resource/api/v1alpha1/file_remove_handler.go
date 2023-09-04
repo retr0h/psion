@@ -5,7 +5,7 @@ import (
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
-// doFileRemoveHandler handler to manage file removal.
+// fileRemoveHandler handler to manage file removal.
 func (f *File) fileRemoveHandler() {
 	if file.Exists(f.appFs, f.Spec.Path) {
 		f.doFileRemove()
@@ -20,21 +20,22 @@ func (f *File) fileRemoveHandler() {
 // doFileRemove implementation to remove file.
 func (f *File) doFileRemove() {
 	if f.plan {
-		f.SetReason("Plan")
 		f.SetStatus(api.Pending)
-		f.SetMessage("file exists")
+		f.SetStatusCondition(
+			"Remove", api.Pending, "file exists", Plan, "file exists", NoOp)
 
 		return
 	}
 
-	f.SetReason("Apply")
 	f.SetStatus(api.Succeeded)
-	f.SetMessage("file removed")
-
 	if err := file.Remove(f.appFs, f.Spec.Path); err != nil {
 		f.SetStatus(api.Failed)
-		f.SetMessage(err.Error())
+		f.SetStatusCondition(
+			"Remove", api.Failed, err.Error(), Apply, "file exists", "file removed")
 	}
+
+	f.SetStatusCondition(
+		"Remove", api.Succeeded, "file removed", Apply, "file exists", "file removed")
 
 	return
 }
@@ -42,16 +43,16 @@ func (f *File) doFileRemove() {
 // noFileRemove implementation to not remove removal.
 func (f *File) noFileRemove() {
 	if f.plan {
-		f.SetReason("Plan")
 		f.SetStatus(api.Pending)
-		f.SetMessage("file does not exist")
+		f.SetStatusCondition(
+			"Remove", api.Pending, "file does not exist", Plan, "file does not exist", NoOp)
 
 		return
 	}
 
-	f.SetReason("Apply")
 	f.SetStatus(api.Succeeded)
-	f.SetMessage("file does not exist")
+	f.SetStatusCondition(
+		"Remove", api.Succeeded, "file does not exist", Apply, "file does not exist", NoOp)
 
 	return
 }

@@ -9,7 +9,7 @@ import (
 // planCmd represents the plan command.
 var planCmd = &cobra.Command{
 	Use:   "plan",
-	Short: "Preview the changes to be made.",
+	Short: "Preview the changes to be made",
 	Long: `Plan the changes to make consistent with the desired state.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {

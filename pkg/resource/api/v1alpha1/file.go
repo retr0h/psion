@@ -5,9 +5,9 @@ import (
 	"log/slog"
 
 	"github.com/spf13/afero"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/retr0h/psion/pkg/resource/api"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ErrNotImplemented is the error returned when feature not implemented.
@@ -30,7 +30,7 @@ type File struct {
 	// Spec represents specification of the desired File behavior.
 	Spec *FileSpec `json:"spec"`
 	// Status contains status of the File.
-	Status *api.Status
+	Status *api.Status `json:"status"`
 
 	// logger logger to be used.
 	logger *slog.Logger
@@ -107,6 +107,20 @@ func (f *File) SetStatusCondition(
 	conditions := f.Status.Conditions
 	conditions = append(conditions, fileStatusConditions)
 	f.Status.Conditions = conditions
+}
+
+// GetState provide current state after apply.
+func (f *File) GetState() *api.Resource {
+	return &api.Resource{
+		Name:       f.Name,
+		Kind:       f.Kind,
+		APIVersion: f.APIVersion,
+		Phase:      f.GetStatus(),
+		Status: &api.Status{
+			Phase:      f.GetStatus(),
+			Conditions: f.GetStatusConditions(),
+		},
+	}
 }
 
 // Reconcile make consistent with the desired state.

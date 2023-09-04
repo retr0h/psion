@@ -2,14 +2,17 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 // applyCmd represents the apply command.
 var applyCmd = &cobra.Command{
 	Use:   "apply",
-	Short: "Apply desired state.",
+	Short: "Apply desired state",
 	Long: `Make consistent with the desired state.
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -24,11 +27,24 @@ var applyCmd = &cobra.Command{
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}
 
+		stateResources := make([]*api.Resource, 0, 1)
 		for _, resource := range resources {
 			if err := resource.Reconcile(); err != nil {
 				return fmt.Errorf("cannot reconcile: %w", err)
 			}
+
+			state := resource.GetState()
+			stateResources = append(stateResources, state)
 		}
+
+		if err := writeStateFile(stateResources); err != nil {
+			return fmt.Errorf("cannot write state file: %w", err)
+		}
+
+		logger.Info(
+			"wrote state file",
+			slog.String("StateFile", stateFile),
+		)
 
 		return nil
 	},

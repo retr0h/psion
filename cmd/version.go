@@ -29,7 +29,7 @@ func (v *Info) toJSON() string {
 }
 
 // toShortened converts the Version into a String.
-func (v *Info) ToShortened() string {
+func (v *Info) toShortened() string {
 	return fmt.Sprintf("Version: %s\n", v.Version)
 }
 
@@ -42,7 +42,7 @@ var (
 	output     = "json"
 	versionCmd = &cobra.Command{
 		Use:   "version",
-		Short: "Display the version of geoip-updater",
+		Short: "Display the version of tool",
 		Run: func(cmd *cobra.Command, args []string) {
 			var response string
 			var resourceFilesInfo []*ResourceFilesInfo
@@ -58,7 +58,7 @@ var (
 			versionInfo.ResourceFiles = resourceFilesInfo
 
 			if shortened {
-				response = versionInfo.ToShortened()
+				response = versionInfo.toShortened()
 			} else {
 				response = versionInfo.toJSON()
 			}

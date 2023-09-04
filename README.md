@@ -68,6 +68,10 @@ Apply desired state:
 
     $ dist/psion apply
 
+Display status of apply:
+
+    $ dist/psion status
+
 ## Testing
 
 To execute tests:

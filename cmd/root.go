@@ -16,8 +16,9 @@ var (
 	debug  bool
 	logger *slog.Logger
 	//go:embed resources/*.yaml
-	eFs   embed.FS
-	appFs afero.Fs
+	eFs       embed.FS
+	appFs     afero.Fs
+	stateFile string
 )
 
 // rootCmd represents the base command when called without any subcommands.
@@ -48,8 +49,9 @@ func init() {
 	cobra.OnInitialize(initLogger)
 
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "set log level to debug")
+	rootCmd.Flags().
+		StringVarP(&stateFile, "state-file", "s", ".state", "path to the state file.")
 
-	// bind flags to config
 	if err := viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")); err != nil {
 		return
 	}

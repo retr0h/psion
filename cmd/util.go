@@ -4,13 +4,16 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
+	"os"
 
 	"sigs.k8s.io/yaml"
 
 	"github.com/retr0h/psion/internal/config"
+	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/api/v1alpha1"
 )
@@ -22,12 +25,12 @@ func loadResourceFile(
 	// read from the embedded fs
 	fileContent, err := eFs.ReadFile(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read file: %w", err)
+		return nil, err
 	}
 
 	runtimeConfig, err := config.LoadRuntimeConfig(fileContent)
 	if err != nil {
-		return nil, fmt.Errorf("cannot load file: %w", err)
+		return nil, err
 	}
 
 	if runtimeConfig.APIVersion != v1alpha1.FileAPIVersion {
@@ -50,7 +53,7 @@ func loadResourceFile(
 	)
 
 	if err := yaml.Unmarshal(fileContent, resourceKind); err != nil {
-		return nil, fmt.Errorf("cannot unmarshal file: %w", err)
+		return nil, err
 	}
 
 	return resourceKind, nil
@@ -65,7 +68,7 @@ func getAllEmbeddedResourceFiles() ([]*ResourceFilesInfo, error) {
 
 		sHA256String, err := hashEmbededFile(eFs, filePath)
 		if err != nil {
-			return fmt.Errorf("cannot hash file: %w", err)
+			return err
 		}
 
 		resourceFilesInfo := &ResourceFilesInfo{
@@ -89,14 +92,14 @@ func loadAllEmbeddedResourceFiles(
 ) ([]api.Manager, error) {
 	files, err := getAllEmbeddedResourceFiles()
 	if err != nil {
-		return nil, fmt.Errorf("cannot walk dir: %w", err)
+		return nil, err
 	}
 
 	resources := make([]api.Manager, 0, 1)
 	for _, resourceFileInfo := range files {
 		resourceFile, err := loadResourceFile(resourceFileInfo.Path, plan)
 		if err != nil {
-			return nil, fmt.Errorf("cannot load resource file: %w", err)
+			return nil, err
 		}
 		resources = append(resources, resourceFile)
 	}
@@ -125,4 +128,36 @@ func hashEmbededFile(
 	returnSHA256String = hex.EncodeToString(hash.Sum(nil))
 
 	return returnSHA256String, nil
+}
+
+func writeStateFile(
+	stateResources []*api.Resource,
+) error {
+	state := api.State{
+		Items: stateResources,
+	}
+	b, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(stateFile, b, 0o644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getState() (*api.State, error) {
+	fileContent, err := file.Read(appFs, stateFile)
+	if err != nil {
+		return nil, err
+	}
+
+	state := &api.State{}
+	if err := json.Unmarshal(fileContent, state); err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }

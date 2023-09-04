@@ -19,29 +19,29 @@ type Phase string
 // Status contains status of the resource.
 type Status struct {
 	// Phase sets `phase` as .status.Phase of the resource.
-	Phase Phase
+	Phase Phase `json:"phase,omitempty"`
 	// A human readable message indicating details about the transition.
-	Message string
+	Message string `json:"message,omitempty"`
 	// The reason for the condition's last transition.
-	Reason string
+	Reason string `json:"reason,omitempty"`
 	// Conditions contains status of the File lifecycle.
-	Conditions []StatusConditions
+	Conditions []StatusConditions `json:"conditions,omitempty"`
 }
 
 // StatusConditions contains status of the resource lifecycle.
 type StatusConditions struct {
 	// Type the resources condition type.
-	Type string
+	Type string `json:"type,omitempty"`
 	// Status the resources phase.
-	Status Phase
+	Status Phase `json:"status,omitempty"`
 	// A human readable message indicating details about the transition.
-	Message string
+	Message string `json:"message,omitempty"`
 	// The reason for the condition's last transition.
-	Reason string
+	Reason string `json:"reason,omitempty"`
 	// Got the resources current state.
-	Got string
+	Got string `json:"got,omitempty"`
 	// Want the resources desired state.
-	Want string
+	Want string `json:"want,omitempty"`
 }
 
 // GetType the type property.
@@ -86,4 +86,20 @@ type Manager interface {
 		got string,
 		want string,
 	)
+	GetState() *Resource
+}
+
+// State used by state file and status.
+type State struct {
+	Items []*Resource `json:"items,omitempty"`
+}
+
+// Resource container holding resource state.
+type Resource struct {
+	Name       string `json:"name"`
+	Kind       string `json:"kind"`
+	APIVersion string `json:"apiVersion"`
+
+	Phase  Phase   `json:"phase,omitempty"`
+	Status *Status `json:"status"`
 }

@@ -60,6 +60,13 @@ tasks:
 
   unit:int:
     desc: Integration test packages
+    cmds:
+      - task: build
+      - touch /tmp/foo /tmp/bar
+      - dist/psion_darwin_amd64_v1/psion apply
+      - test ! -f /tmp/foo
+      - test ! -f /tmp/bar
+
 
   test:
     desc: Test all

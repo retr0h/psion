@@ -2,7 +2,7 @@
 apiVersion: files.psion.io/v1alpha1
 kind: File
 metadata:
-  name: file-remove
+  name: file-remove-bar
 spec:
-  path: /tmp/bla
+  path: /tmp/bar
   exists: false

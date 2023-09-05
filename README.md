@@ -64,13 +64,35 @@ Preview the changes to be made:
 
     $ dist/psion plan
 
+```bash
+9:49PM INF completed Status=Pending Kind=File APIVersion=files.psion.io/v1alpha1 File.Path=/tmp/foo File.Exists=false Conditions.Remove.Type=Remove Conditions.Remove.Status=Pending Conditions.Remove.Message="file does not exist" Conditions.Remove.Reason=Plan Conditions.Remove.Got="file does not exist" Conditions.Remove.Want=NoOp
+```
+
 Apply desired state:
 
     $ dist/psion apply
 
+```bash
+9:49PM INF completed Status=Succeeded Kind=File APIVersion=files.psion.io/v1alpha1 File.Path=/tmp/foo File.Exists=false Conditions.Remove.Type=Remove Conditions.Remove.Status=Succeeded Conditions.Remove.Message="file does not exist" Conditions.Remove.Reason=Apply Conditions.Remove.Got="file does not exist" Conditions.Remove.Want=NoOp
+9:49PM INF wrote state file StateFile=.state
+```
+
 Display status of apply:
 
     $ dist/psion status
+
+```bash
++-----------------+-----------+------+-------------------------+---------------------------------+
+| NAME            | STATUS    | KIND | APIVERSION              | CONDITIONS                      |
++-----------------+-----------+------+-------------------------+---------------------------------+
+| file-remove-bla | Succeeded | File | files.psion.io/v1alpha1 |  Type    | Remove               |
+|                 |           |      |                         |  Status  | Succeeded            |
+|                 |           |      |                         |  Message | file does not exist  |
+|                 |           |      |                         |  Reason  | Apply                |
+|                 |           |      |                         |  Got     | file does not exist  |
+|                 |           |      |                         |  Want    | NoOp                 |
++-----------------+-----------+------+-------------------------+---------------------------------+
+```
 
 ## Testing
 

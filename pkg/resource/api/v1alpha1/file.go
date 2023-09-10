@@ -142,13 +142,7 @@ func (f *File) GetState() *api.StateResource {
 
 // Reconcile make consistent with the desired state.
 func (f *File) Reconcile() error {
-	if !f.Spec.Exists {
-		// file should be deleted
-		f.fileRemoveHandler()
-	} else {
-		// handle remaining file permutations
-		f.fileHandler()
-	}
+	f.fileHandler()
 
 	f.logger.Info(
 		"completed",

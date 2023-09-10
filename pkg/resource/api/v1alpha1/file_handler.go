@@ -2,7 +2,12 @@ package v1alpha1
 
 // fileHandler handler to manage file changes.
 func (f *File) fileHandler() {
-	// handle setting file modes
+	// handle file removal
+	if !f.Spec.Exists {
+		f.fileRemoveHandler()
+	}
+
+	// handle resource modes
 	if f.Spec.GetMode() != 0 {
 		f.doFileMode()
 	}

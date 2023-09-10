@@ -27,7 +27,7 @@ var applyCmd = &cobra.Command{
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}
 
-		stateResources := make([]*api.Resource, 0, 1)
+		stateResources := make([]*api.StateResource, 0, 1)
 		for _, resource := range resources {
 			if err := resource.Reconcile(); err != nil {
 				return fmt.Errorf("cannot reconcile: %w", err)

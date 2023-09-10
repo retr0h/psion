@@ -131,7 +131,7 @@ func hashEmbededFile(
 }
 
 func writeStateFile(
-	stateResources []*api.Resource,
+	stateResources []*api.StateResource,
 ) error {
 	state := api.State{
 		Items: stateResources,

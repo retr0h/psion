@@ -75,9 +75,6 @@ func (f *File) GetStatus() api.Phase {
 	return api.Unknown
 }
 
-// SetStatus set the status property.
-func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
-
 // GetStatusString determine the resources status as a string.
 func (f *File) GetStatusString() string { return string(f.GetStatus()) }
 
@@ -130,8 +127,8 @@ func (f *File) SetStatusCondition(
 }
 
 // GetState provide current state after apply.
-func (f *File) GetState() *api.Resource {
-	return &api.Resource{
+func (f *File) GetState() *api.StateResource {
+	return &api.StateResource{
 		Name:       f.Name,
 		Kind:       f.Kind,
 		APIVersion: f.APIVersion,

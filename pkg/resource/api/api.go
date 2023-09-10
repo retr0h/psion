@@ -86,7 +86,6 @@ type Manager interface {
 	Reconcile() error
 	GetStatus() Phase
 	GetStatusString() string
-	SetStatus(status Phase)
 	GetStatusConditions() []StatusConditions
 	SetStatusCondition(
 		statusType string,
@@ -95,12 +94,12 @@ type Manager interface {
 		got string,
 		want string,
 	)
-	GetState() *Resource
+	GetState() *StateResource
 }
 
 // State used by state file and status.
 type State struct {
-	Items []*Resource `json:"items,omitempty"`
+	Items []*StateResource `json:"items,omitempty"`
 }
 
 // GetStatus determine the state status.
@@ -136,7 +135,7 @@ func (s *State) GetStatus() Phase {
 // GetStatusString the status property as a string.
 func (s *State) GetStatusString() string { return string(s.GetStatus()) }
 
-func (s *State) allStatusMatch(phase Phase, resources []*Resource) bool {
+func (s *State) allStatusMatch(phase Phase, resources []*StateResource) bool {
 	for _, resource := range resources {
 		if resource.GetStatus() != phase {
 			return false
@@ -146,7 +145,7 @@ func (s *State) allStatusMatch(phase Phase, resources []*Resource) bool {
 	return true
 }
 
-func (s *State) anyStatusMatch(phase Phase, resources []*Resource) bool {
+func (s *State) anyStatusMatch(phase Phase, resources []*StateResource) bool {
 	for _, resource := range resources {
 		if resource.GetStatus() == phase {
 			return true
@@ -155,8 +154,8 @@ func (s *State) anyStatusMatch(phase Phase, resources []*Resource) bool {
 	return false
 }
 
-// Resource container holding resource state.
-type Resource struct {
+// StateResource container holding resource state.
+type StateResource struct {
 	Name       string `json:"name"`
 	Kind       string `json:"kind"`
 	APIVersion string `json:"apiVersion"`
@@ -166,4 +165,4 @@ type Resource struct {
 }
 
 // GetStatus the status property.
-func (r *Resource) GetStatus() Phase { return r.Status.Phase }
+func (r *StateResource) GetStatus() Phase { return r.Status.Phase }

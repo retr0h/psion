@@ -103,6 +103,58 @@ type State struct {
 	Items []*Resource `json:"items,omitempty"`
 }
 
+// GetStatus determine the state status.
+func (s *State) GetStatus() Phase {
+	noop := s.allStatusMatch(NoOp, s.Items)
+	// set status to `NoOp` when all status are `NoOp`
+	if noop {
+		return NoOp
+	}
+
+	succeeded := s.allStatusMatch(Succeeded, s.Items)
+	// set status to `Succeeded` when all status are `Succeeded`
+	if succeeded {
+		return Succeeded
+	}
+
+	pending := s.anyStatusMatch(Pending, s.Items)
+	// set status to `Pending` when any status `Pending`
+	if pending {
+		return Pending
+	}
+
+	failed := s.anyStatusMatch(Failed, s.Items)
+	// set status to `Failed` when any status are `Failed`
+	if failed {
+		return Failed
+	}
+
+	// otherwise set to `Unknown`
+	return Unknown
+}
+
+// GetStatusString the status property as a string.
+func (s *State) GetStatusString() string { return string(s.GetStatus()) }
+
+func (s *State) allStatusMatch(phase Phase, resources []*Resource) bool {
+	for _, resource := range resources {
+		if resource.GetStatus() != phase {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (s *State) anyStatusMatch(phase Phase, resources []*Resource) bool {
+	for _, resource := range resources {
+		if resource.GetStatus() == phase {
+			return true
+		}
+	}
+	return false
+}
+
 // Resource container holding resource state.
 type Resource struct {
 	Name       string `json:"name"`
@@ -112,3 +164,6 @@ type Resource struct {
 	Phase  Phase   `json:"phase,omitempty"`
 	Status *Status `json:"status"`
 }
+
+// GetStatus the status property.
+func (r *Resource) GetStatus() Phase { return r.Status.Phase }

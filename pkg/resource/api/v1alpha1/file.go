@@ -79,13 +79,11 @@ func (f *File) GetStatus() api.Phase {
 func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
 
 // GetStatusString determine the resources status as a string.
-func (f *File) GetStatusString() string {
-	return string(f.GetStatus())
-}
+func (f *File) GetStatusString() string { return string(f.GetStatus()) }
 
 func (f *File) allConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
 	for _, condition := range conditions {
-		if condition.Status != phase {
+		if condition.GetStatus() != phase {
 			return false
 		}
 	}
@@ -94,7 +92,7 @@ func (f *File) allConditionsMatch(phase api.Phase, conditions []api.StatusCondit
 
 func (f *File) anyConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
 	for _, condition := range conditions {
-		if condition.Status == phase {
+		if condition.GetStatus() == phase {
 			return true
 		}
 	}

@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
-	// "github.com/jedib0t/go-pretty/v6/text"
 	"github.com/spf13/cobra"
 )
 
@@ -59,6 +58,7 @@ var statusCmd = &cobra.Command{
 			t.AppendSeparator()
 		}
 		t.AppendSeparator()
+		t.AppendFooter(table.Row{"Status", state.GetStatusString(), "", "", ""})
 		t.Render()
 
 		return nil

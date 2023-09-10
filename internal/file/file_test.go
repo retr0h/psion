@@ -232,7 +232,7 @@ var _ = Describe("Identical", func() {
 	})
 })
 
-var _ = Describe("Mode", func() {
+var _ = Describe("GetMode", func() {
 	When("file exists", func() {
 		appFs := afero.NewMemMapFs()
 		dir := "/app"
@@ -251,7 +251,7 @@ var _ = Describe("Mode", func() {
 		})
 
 		It("should return FileMode", func() {
-			got, err := Mode(appFs, filePath)
+			got, err := GetMode(appFs, filePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(got).Should(Equal(fs.FileMode(0o644)))
 		})
@@ -261,7 +261,44 @@ var _ = Describe("Mode", func() {
 		It("should have error", func() {
 			appFs := afero.NewMemMapFs()
 
-			_, err := Mode(appFs, "does-not-exist-1")
+			_, err := GetMode(appFs, "does-not-exist-1")
+			Expect(err).To(HaveOccurred())
+		})
+	})
+})
+
+var _ = Describe("SetMode", func() {
+	When("file exists", func() {
+		appFs := afero.NewMemMapFs()
+		dir := "/app"
+		filePath := filepath.Join(dir, "filePath")
+
+		BeforeEach(func() {
+			_ = appFs.MkdirAll(dir, 0o755)
+
+			err := afero.WriteFile(
+				appFs,
+				filePath,
+				[]byte("mockContent"),
+				0o644,
+			)
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("should set file mode", func() {
+			err := SetMode(appFs, filePath, 0o777)
+			Expect(err).ToNot(HaveOccurred())
+
+			got, _ := GetMode(appFs, filePath)
+			Expect(got).Should(Equal(fs.FileMode(0o777)))
+		})
+	})
+
+	When("file does not exist", func() {
+		It("should have error", func() {
+			appFs := afero.NewMemMapFs()
+
+			err := SetMode(appFs, "does-not-exist-1", 0o777)
 			Expect(err).To(HaveOccurred())
 		})
 	})

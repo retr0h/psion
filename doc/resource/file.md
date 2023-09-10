@@ -41,7 +41,7 @@ file:
     # optional attributes
     # defaults to hash key
     path: /etc/passwd
-    mode: "0644"
+    mode: 0o644
     owner: root
     group: root
     filetype: file # file, symlink, directory

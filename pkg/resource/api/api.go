@@ -1,5 +1,11 @@
 package api
 
+// Phase is a label for the condition of the resource at the current time.
+type Phase string
+
+// Action the kind of action to perform on resources.
+type Action string
+
 // These are the valid statuses of the resource.
 const (
 	// Pending means the declared changes have yet to be made.
@@ -11,10 +17,14 @@ const (
 	// Unknown means that for some reason the state of the resource
 	// could not be obtained.
 	Unknown Phase = "Unknown"
-)
+	// NoOp means no changes will be made, resource matches declared state.
+	NoOp Phase = "NoOp"
 
-// Phase is a label for the condition of the resource at the current time.
-type Phase string
+	// Plan represents the changes to make consistent with the desired state.
+	Plan Action = "Plan"
+	// Apply represents the changes to make the desired state.
+	Apply Action = "Apply"
+)
 
 // Status contains status of the resource.
 type Status struct {
@@ -37,7 +47,7 @@ type StatusConditions struct {
 	// A human readable message indicating details about the transition.
 	Message string `json:"message,omitempty"`
 	// The reason for the condition's last transition.
-	Reason string `json:"reason,omitempty"`
+	Reason Action `json:"reason,omitempty"`
 	// Got the resources current state.
 	Got string `json:"got,omitempty"`
 	// Want the resources desired state.
@@ -57,10 +67,10 @@ func (sc *StatusConditions) GetMessage() string { return sc.Message }
 func (sc *StatusConditions) SetMessage(message string) { sc.Message = message }
 
 // GetReason the reason property.
-func (sc *StatusConditions) GetReason() string { return sc.Reason }
+func (sc *StatusConditions) GetReason() Action { return sc.Reason }
 
-// SetReason set the reason property.
-func (sc *StatusConditions) SetReason(reason string) { sc.Reason = reason }
+// GetReasonString the reason property.
+func (sc *StatusConditions) GetReasonString() string { return string(sc.Reason) }
 
 // GetStatusString the status property as a string.
 func (sc *StatusConditions) GetStatusString() string { return string(sc.Status) }
@@ -82,7 +92,6 @@ type Manager interface {
 		statusType string,
 		status Phase,
 		message string,
-		reason string,
 		got string,
 		want string,
 	)

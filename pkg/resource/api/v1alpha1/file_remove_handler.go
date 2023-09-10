@@ -7,7 +7,7 @@ import (
 
 // fileRemoveHandler handler to manage file removal.
 func (f *File) fileRemoveHandler() {
-	if file.Exists(f.appFs, f.Spec.Path) {
+	if file.Exists(f.appFs, f.Spec.GetPath()) {
 		f.doFileRemove()
 
 		return
@@ -20,22 +20,21 @@ func (f *File) fileRemoveHandler() {
 // doFileRemove implementation to remove file.
 func (f *File) doFileRemove() {
 	if f.plan {
-		f.SetStatus(api.Pending)
 		f.SetStatusCondition(
-			"Remove", api.Pending, "file exists", Plan, "file exists", NoOp)
+			RemoveAction, api.Pending, "file exists", "exists true", "exists false")
 
 		return
 	}
 
-	f.SetStatus(api.Succeeded)
-	if err := file.Remove(f.appFs, f.Spec.Path); err != nil {
-		f.SetStatus(api.Failed)
+	if err := file.Remove(f.appFs, f.Spec.GetPath()); err != nil {
 		f.SetStatusCondition(
-			"Remove", api.Failed, err.Error(), Apply, "file exists", "file removed")
+			RemoveAction, api.Failed, err.Error(), "Unknown", "file removed")
+
+		return
 	}
 
 	f.SetStatusCondition(
-		"Remove", api.Succeeded, "file removed", Apply, "file exists", "file removed")
+		RemoveAction, api.Succeeded, "file removed", "exists false", "exists false")
 
 	return
 }
@@ -43,16 +42,14 @@ func (f *File) doFileRemove() {
 // noFileRemove implementation to not remove removal.
 func (f *File) noFileRemove() {
 	if f.plan {
-		f.SetStatus(api.Pending)
 		f.SetStatusCondition(
-			"Remove", api.Pending, "file does not exist", Plan, "file does not exist", NoOp)
+			RemoveAction, api.NoOp, "file does not exist", "exists false", "exists false")
 
 		return
 	}
 
-	f.SetStatus(api.Succeeded)
 	f.SetStatusCondition(
-		"Remove", api.Succeeded, "file does not exist", Apply, "file does not exist", NoOp)
+		RemoveAction, api.NoOp, "file does not exist", "exists false", "exists false")
 
 	return
 }

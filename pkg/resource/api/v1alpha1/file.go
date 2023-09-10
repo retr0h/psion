@@ -1,60 +1,31 @@
 package v1alpha1
 
 import (
-	"errors"
+	"fmt"
+	"io/fs"
 	"log/slog"
 
 	"github.com/spf13/afero"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
-// ErrNotImplemented is the error returned when feature not implemented.
-var ErrNotImplemented = errors.New("not implemented")
+// GetExists the exists property.
+func (f *FileSpec) GetExists() bool { return f.Exists }
 
-const (
-	// NoOp represents a no-op event.
-	NoOp string = "NoOp"
-	// Plan represents the changes to make consistent with the desired state.
-	Plan string = "Plan"
-	// Apply represents the changes to make the desired state.
-	Apply string = "Apply"
-)
+// GetPath the path property.
+func (f *FileSpec) GetPath() string { return f.Path }
 
-// File enables declarative updates to File.
-type File struct {
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	metav1.TypeMeta   `json:",omitempty,inline"`
+// GetMode the mode property.
+func (f *FileSpec) GetMode() fs.FileMode { return fs.FileMode(f.Mode) }
 
-	// Spec represents specification of the desired File behavior.
-	Spec *FileSpec `json:"spec"`
-	// Status contains status of the File.
-	Status *api.Status `json:"status"`
+// GetModeString the mode property as an octal string.
+func (f *FileSpec) GetModeString() string {
+	if f.Mode == 0 {
+		return ""
+	}
 
-	// logger logger to be used.
-	logger *slog.Logger
-	// appFs FileSystem abstraction.
-	appFs afero.Fs
-	// plan preview the changes to be made.
-	plan bool
-}
-
-// FileSpec is the specification of the desired behavior of the File.
-type FileSpec struct {
-	// Exists should file be created or deleted.
-	Exists bool `json:"exists"`
-	// Path to the file creating or deleting.
-	Path string `json:"path,omitempty"`
-	// +optional
-	// Mode     matcher `json:"mode,omitempty"`
-	// Owner    matcher `json:"owner,omitempty"`
-	// Group    matcher `json:"group,omitempty"`
-	// Contents matcher `json:"contents"`
-	// Md5      matcher `json:"md5,omitempty"`
-	// Sha256   matcher `json:"sha256,omitempty"`
-	// Sha512   matcher `json:"sha512,omitempty"`
-	// Skip bool `json:"skip,omitempty"`
+	return fmt.Sprintf("0%o", f.Mode)
 }
 
 // NewFile create a new instance of File.
@@ -74,14 +45,61 @@ func NewFile(
 	}
 }
 
-// GetStatus the status property.
-func (f *File) GetStatus() api.Phase { return f.Status.Phase }
+// GetStatus determine the resources status.
+func (f *File) GetStatus() api.Phase {
+	noop := f.allConditionsMatch(api.NoOp, f.Status.Conditions)
+	// set status to `NoOp` when all condition statuses are `NoOp`
+	if noop {
+		return api.NoOp
+	}
+
+	succeeded := f.allConditionsMatch(api.Succeeded, f.Status.Conditions)
+	// set status to `Succeeded` when all condition statuses are `Succeeded`
+	if succeeded {
+		return api.Succeeded
+	}
+
+	pending := f.anyConditionsMatch(api.Pending, f.Status.Conditions)
+	// set status to `Pending` when any condition statuses are `Pending`
+	if pending {
+		return api.Pending
+	}
+
+	failed := f.anyConditionsMatch(api.Failed, f.Status.Conditions)
+	// set status to `Failed` when any condition statuses are `Failed`
+	if failed {
+		return api.Failed
+	}
+
+	// otherwise set to `Unknown`
+	return api.Unknown
+}
 
 // SetStatus set the status property.
 func (f *File) SetStatus(status api.Phase) { f.Status.Phase = status }
 
-// GetStatusString the status property as a string.
-func (f *File) GetStatusString() string { return string(f.Status.Phase) }
+// GetStatusString determine the resources status as a string.
+func (f *File) GetStatusString() string {
+	return string(f.GetStatus())
+}
+
+func (f *File) allConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
+	for _, condition := range conditions {
+		if condition.Status != phase {
+			return false
+		}
+	}
+	return true
+}
+
+func (f *File) anyConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
+	for _, condition := range conditions {
+		if condition.Status == phase {
+			return true
+		}
+	}
+	return false
+}
 
 // GetStatusConditions the conditions property.
 func (f *File) GetStatusConditions() []api.StatusConditions { return f.Status.Conditions }
@@ -91,10 +109,14 @@ func (f *File) SetStatusCondition(
 	statusType string,
 	status api.Phase,
 	message string,
-	reason string,
 	got string,
 	want string,
 ) {
+	reason := api.Apply
+	if f.plan {
+		reason = api.Plan
+	}
+
 	fileStatusConditions := api.StatusConditions{
 		Type:    statusType,
 		Status:  status,
@@ -129,8 +151,8 @@ func (f *File) Reconcile() error {
 		// file should be deleted
 		f.fileRemoveHandler()
 	} else {
-		// existing file should be modified
-		return ErrNotImplemented
+		// handle remaining file permutations
+		f.fileHandler()
 	}
 
 	f.logger.Info(
@@ -139,8 +161,9 @@ func (f *File) Reconcile() error {
 		slog.String("Kind", f.Kind),
 		slog.String("APIVersion", f.APIVersion),
 		slog.Group(FileKind,
-			slog.String("Path", f.Spec.Path),
-			slog.Bool("Exists", f.Spec.Exists),
+			slog.String("Path", f.Spec.GetPath()),
+			slog.Bool("Exists", f.Spec.GetExists()),
+			slog.String("Mode", f.Spec.GetModeString()),
 		),
 		slog.Group("Conditions", f.logStatusConditionGroups()...),
 	)
@@ -152,10 +175,9 @@ func (f *File) logStatusConditionGroups() []any {
 	var logGroups []any
 	for _, condition := range f.Status.Conditions {
 		group := slog.Group(condition.GetType(),
-			slog.String("Type", condition.GetType()),
 			slog.String("Status", condition.GetStatusString()),
 			slog.String("Message", condition.GetMessage()),
-			slog.String("Reason", condition.GetReason()),
+			slog.String("Reason", condition.GetReasonString()),
 			slog.String("Got", condition.GetGot()),
 			slog.String("Want", condition.GetWant()),
 		)

@@ -62,11 +62,11 @@ tasks:
     desc: Integration test packages
     cmds:
       - task: build
-      - touch /tmp/foo /tmp/bar
+      - touch /tmp/foo /tmp/bar /tmp/baz
       - dist/psion_darwin_amd64_v1/psion apply
       - test ! -f /tmp/foo
       - test ! -f /tmp/bar
-
+      - test -x /tmp/baz
 
   test:
     desc: Test all

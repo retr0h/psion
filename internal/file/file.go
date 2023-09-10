@@ -73,17 +73,12 @@ func Copy(
 	return w.Close()
 }
 
-// test this TODO
 // Remove removes the named file if exists.
 func Remove(
 	appFs afero.Fs,
 	filePath string,
 ) error {
-	if err := appFs.Remove(filePath); err != nil {
-		return err
-	}
-
-	return nil
+	return appFs.Remove(filePath)
 }
 
 // Exists reports if the named file or directory exists.
@@ -164,8 +159,8 @@ func Identical(
 	return false, nil
 }
 
-// Mode returns the named files mode.
-func Mode(
+// GetMode returns the named files mode.
+func GetMode(
 	appFs afero.Fs,
 	filePath string,
 ) (fs.FileMode, error) {
@@ -174,5 +169,14 @@ func Mode(
 		return 0, err
 	}
 
-	return fileInfo.Mode().Perm(), nil
+	return fileInfo.Mode(), nil
+}
+
+// SetMode sets the named files mode.
+func SetMode(
+	appFs afero.Fs,
+	filePath string,
+	mode fs.FileMode,
+) error {
+	return appFs.Chmod(filePath, mode)
 }

@@ -21,23 +21,24 @@ var applyCmd = &cobra.Command{
 		// occurs.
 		cmd.SilenceUsage = true
 
-		plan := false
+		var (
+			plan  bool             = false
+			state api.StateManager = api.NewState(appFs, stateFile)
+		)
+
 		resources, err := loadAllEmbeddedResourceFiles(plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}
 
-		stateResources := make([]*api.StateResource, 0, 1)
 		for _, resource := range resources {
 			if err := resource.Reconcile(); err != nil {
 				return fmt.Errorf("cannot reconcile: %w", err)
 			}
-
-			state := resource.GetState()
-			stateResources = append(stateResources, state)
+			state.SetItems(resource.GetState())
 		}
 
-		if err := writeStateFile(stateResources); err != nil {
+		if err := state.SetState(); err != nil {
 			return fmt.Errorf("cannot write state file: %w", err)
 		}
 

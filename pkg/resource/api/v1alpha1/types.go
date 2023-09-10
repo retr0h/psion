@@ -15,9 +15,9 @@ const (
 	FileAPIVersion = "files.psion.io/v1alpha1"
 
 	// RemoveAction action type.
-	RemoveAction string = "Remove"
+	RemoveAction api.SpecAction = "Remove"
 	// ModeAction action type.
-	ModeAction string = "Mode"
+	ModeAction api.SpecAction = "Mode"
 )
 
 // File enables declarative updates to File.

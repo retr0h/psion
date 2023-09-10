@@ -4,16 +4,13 @@ import (
 	"crypto/sha256"
 	"embed"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 
 	"sigs.k8s.io/yaml"
 
 	"github.com/retr0h/psion/internal/config"
-	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/api/v1alpha1"
 )
@@ -128,36 +125,4 @@ func hashEmbededFile(
 	returnSHA256String = hex.EncodeToString(hash.Sum(nil))
 
 	return returnSHA256String, nil
-}
-
-func writeStateFile(
-	stateResources []*api.StateResource,
-) error {
-	state := api.State{
-		Items: stateResources,
-	}
-	b, err := json.Marshal(state)
-	if err != nil {
-		return err
-	}
-
-	if err := os.WriteFile(stateFile, b, 0o644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getState() (*api.State, error) {
-	fileContent, err := file.Read(appFs, stateFile)
-	if err != nil {
-		return nil, err
-	}
-
-	state := &api.State{}
-	if err := json.Unmarshal(fileContent, state); err != nil {
-		return nil, err
-	}
-
-	return state, nil
 }

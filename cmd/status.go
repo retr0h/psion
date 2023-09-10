@@ -6,6 +6,8 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
+
+	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 // statusCmd represents the plan command.
@@ -20,7 +22,9 @@ var statusCmd = &cobra.Command{
 		// occurs.
 		cmd.SilenceUsage = true
 
-		state, err := getState()
+		var state api.StateManager = api.NewState(appFs, stateFile)
+		var err error
+		state, err = state.GetState()
 		if err != nil {
 			return fmt.Errorf("cannot get state: %w", err)
 		}
@@ -35,7 +39,7 @@ var statusCmd = &cobra.Command{
 		t := table.NewWriter()
 		t.SetOutputMirror(os.Stdout)
 		t.AppendHeader(table.Row{"Name", "Status", "Kind", "APIVersion", "Conditions"})
-		for _, resource := range state.Items {
+		for _, resource := range state.GetItems() {
 			tConditions := generateInnerTable()
 			for _, condition := range resource.Status.Conditions {
 				tConditions.AppendRow(table.Row{"Type", condition.Type})

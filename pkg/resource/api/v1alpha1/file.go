@@ -47,25 +47,25 @@ func NewFile(
 
 // GetStatus determine the resources status.
 func (f *File) GetStatus() api.Phase {
-	noop := f.allConditionsMatch(api.NoOp, f.Status.Conditions)
+	noop := f.allMatch(api.NoOp)
 	// set status to `NoOp` when all condition statuses are `NoOp`
 	if noop {
 		return api.NoOp
 	}
 
-	succeeded := f.allConditionsMatch(api.Succeeded, f.Status.Conditions)
+	succeeded := f.allMatch(api.Succeeded)
 	// set status to `Succeeded` when all condition statuses are `Succeeded`
 	if succeeded {
 		return api.Succeeded
 	}
 
-	pending := f.anyConditionsMatch(api.Pending, f.Status.Conditions)
+	pending := f.anyMatch(api.Pending)
 	// set status to `Pending` when any condition statuses are `Pending`
 	if pending {
 		return api.Pending
 	}
 
-	failed := f.anyConditionsMatch(api.Failed, f.Status.Conditions)
+	failed := f.anyMatch(api.Failed)
 	// set status to `Failed` when any condition statuses are `Failed`
 	if failed {
 		return api.Failed
@@ -78,8 +78,8 @@ func (f *File) GetStatus() api.Phase {
 // GetStatusString determine the resources status as a string.
 func (f *File) GetStatusString() string { return string(f.GetStatus()) }
 
-func (f *File) allConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
-	for _, condition := range conditions {
+func (f *File) allMatch(phase api.Phase) bool {
+	for _, condition := range f.Status.Conditions {
 		if condition.GetStatus() != phase {
 			return false
 		}
@@ -87,8 +87,8 @@ func (f *File) allConditionsMatch(phase api.Phase, conditions []api.StatusCondit
 	return true
 }
 
-func (f *File) anyConditionsMatch(phase api.Phase, conditions []api.StatusConditions) bool {
-	for _, condition := range conditions {
+func (f *File) anyMatch(phase api.Phase) bool {
+	for _, condition := range f.Status.Conditions {
 		if condition.GetStatus() == phase {
 			return true
 		}
@@ -101,7 +101,7 @@ func (f *File) GetStatusConditions() []api.StatusConditions { return f.Status.Co
 
 // SetStatusCondition set the status condition property.
 func (f *File) SetStatusCondition(
-	statusType string,
+	statusType api.SpecAction,
 	status api.Phase,
 	message string,
 	got string,
@@ -169,7 +169,7 @@ func (f *File) Reconcile() error {
 func (f *File) logStatusConditionGroups() []any {
 	var logGroups []any
 	for _, condition := range f.Status.Conditions {
-		group := slog.Group(condition.GetType(),
+		group := slog.Group(condition.GetTypeString(),
 			slog.String("Status", condition.GetStatusString()),
 			slog.String("Message", condition.GetMessage()),
 			slog.String("Reason", condition.GetReasonString()),

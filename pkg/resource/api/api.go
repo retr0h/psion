@@ -1,61 +1,19 @@
 package api
 
-// Phase is a label for the condition of the resource at the current time.
-type Phase string
+import (
+	"encoding/json"
+	"os"
 
-// Action the kind of action to perform on resources.
-type Action string
+	"github.com/spf13/afero"
 
-// These are the valid statuses of the resource.
-const (
-	// Pending means the declared changes have yet to be made.
-	Pending Phase = "Pending"
-	// Succeeded means the declared changes have been made.
-	Succeeded Phase = "Succeeded"
-	// Failed means the declaared changes have not been made.
-	Failed Phase = "Failed"
-	// Unknown means that for some reason the state of the resource
-	// could not be obtained.
-	Unknown Phase = "Unknown"
-	// NoOp means no changes will be made, resource matches declared state.
-	NoOp Phase = "NoOp"
-
-	// Plan represents the changes to make consistent with the desired state.
-	Plan Action = "Plan"
-	// Apply represents the changes to make the desired state.
-	Apply Action = "Apply"
+	"github.com/retr0h/psion/internal/file"
 )
 
-// Status contains status of the resource.
-type Status struct {
-	// Phase sets `phase` as .status.Phase of the resource.
-	Phase Phase `json:"phase,omitempty"`
-	// A human readable message indicating details about the transition.
-	Message string `json:"message,omitempty"`
-	// The reason for the condition's last transition.
-	Reason string `json:"reason,omitempty"`
-	// Conditions contains status of the File lifecycle.
-	Conditions []StatusConditions `json:"conditions,omitempty"`
-}
+// GetType the action property.
+func (sc *StatusConditions) GetType() SpecAction { return sc.Type }
 
-// StatusConditions contains status of the resource lifecycle.
-type StatusConditions struct {
-	// Type the resources condition type.
-	Type string `json:"type,omitempty"`
-	// Status the resources phase.
-	Status Phase `json:"status,omitempty"`
-	// A human readable message indicating details about the transition.
-	Message string `json:"message,omitempty"`
-	// The reason for the condition's last transition.
-	Reason Action `json:"reason,omitempty"`
-	// Got the resources current state.
-	Got string `json:"got,omitempty"`
-	// Want the resources desired state.
-	Want string `json:"want,omitempty"`
-}
-
-// GetType the type property.
-func (sc *StatusConditions) GetType() string { return sc.Type }
+// GetTypeString the action property.
+func (sc *StatusConditions) GetTypeString() string { return string(sc.GetType()) }
 
 // GetStatus the status property.
 func (sc *StatusConditions) GetStatus() Phase { return sc.Status }
@@ -70,10 +28,10 @@ func (sc *StatusConditions) SetMessage(message string) { sc.Message = message }
 func (sc *StatusConditions) GetReason() Action { return sc.Reason }
 
 // GetReasonString the reason property.
-func (sc *StatusConditions) GetReasonString() string { return string(sc.Reason) }
+func (sc *StatusConditions) GetReasonString() string { return string(sc.GetReason()) }
 
 // GetStatusString the status property as a string.
-func (sc *StatusConditions) GetStatusString() string { return string(sc.Status) }
+func (sc *StatusConditions) GetStatusString() string { return string(sc.GetStatus()) }
 
 // GetGot get the got property.
 func (sc *StatusConditions) GetGot() string { return sc.Got }
@@ -81,48 +39,38 @@ func (sc *StatusConditions) GetGot() string { return sc.Got }
 // GetWant get the want property.
 func (sc *StatusConditions) GetWant() string { return sc.Want }
 
-// Manager interface all resources must implement.
-type Manager interface {
-	Reconcile() error
-	GetStatus() Phase
-	GetStatusString() string
-	GetStatusConditions() []StatusConditions
-	SetStatusCondition(
-		statusType string,
-		status Phase,
-		message string,
-		got string,
-		want string,
-	)
-	GetState() *StateResource
-}
-
-// State used by state file and status.
-type State struct {
-	Items []*StateResource `json:"items,omitempty"`
+// NewState create a new instance of State.
+func NewState(
+	appFs afero.Fs,
+	stateFile string,
+) *State {
+	return &State{
+		File:  stateFile,
+		appFs: appFs,
+	}
 }
 
 // GetStatus determine the state status.
 func (s *State) GetStatus() Phase {
-	noop := s.allStatusMatch(NoOp, s.Items)
+	noop := s.allMatch(NoOp)
 	// set status to `NoOp` when all status are `NoOp`
 	if noop {
 		return NoOp
 	}
 
-	succeeded := s.allStatusMatch(Succeeded, s.Items)
+	succeeded := s.allMatch(Succeeded)
 	// set status to `Succeeded` when all status are `Succeeded`
 	if succeeded {
 		return Succeeded
 	}
 
-	pending := s.anyStatusMatch(Pending, s.Items)
+	pending := s.anyMatch(Pending)
 	// set status to `Pending` when any status `Pending`
 	if pending {
 		return Pending
 	}
 
-	failed := s.anyStatusMatch(Failed, s.Items)
+	failed := s.anyMatch(Failed)
 	// set status to `Failed` when any status are `Failed`
 	if failed {
 		return Failed
@@ -132,11 +80,23 @@ func (s *State) GetStatus() Phase {
 	return Unknown
 }
 
+// GetItems get the items property.
+func (s *State) GetItems() []*StateResource { return s.Items }
+
+// SetItems set the items property.
+func (s *State) SetItems(
+	stateResource *StateResource,
+) {
+	stateResources := s.Items
+	stateResources = append(stateResources, stateResource)
+	s.Items = stateResources
+}
+
 // GetStatusString the status property as a string.
 func (s *State) GetStatusString() string { return string(s.GetStatus()) }
 
-func (s *State) allStatusMatch(phase Phase, resources []*StateResource) bool {
-	for _, resource := range resources {
+func (s *State) allMatch(phase Phase) bool {
+	for _, resource := range s.Items {
 		if resource.GetStatus() != phase {
 			return false
 		}
@@ -145,8 +105,8 @@ func (s *State) allStatusMatch(phase Phase, resources []*StateResource) bool {
 	return true
 }
 
-func (s *State) anyStatusMatch(phase Phase, resources []*StateResource) bool {
-	for _, resource := range resources {
+func (s *State) anyMatch(phase Phase) bool {
+	for _, resource := range s.Items {
 		if resource.GetStatus() == phase {
 			return true
 		}
@@ -154,14 +114,32 @@ func (s *State) anyStatusMatch(phase Phase, resources []*StateResource) bool {
 	return false
 }
 
-// StateResource container holding resource state.
-type StateResource struct {
-	Name       string `json:"name"`
-	Kind       string `json:"kind"`
-	APIVersion string `json:"apiVersion"`
+// SetState write state to file.
+func (s *State) SetState() error {
+	state := State{
+		Items: s.Items,
+	}
+	b, err := json.Marshal(state)
+	if err != nil {
+		return err
+	}
 
-	Phase  Phase   `json:"phase,omitempty"`
-	Status *Status `json:"status"`
+	return os.WriteFile(s.File, b, 0o644)
+}
+
+// GetState read state from file and unmarshal.
+func (s *State) GetState() (*State, error) {
+	fileContent, err := file.Read(s.appFs, s.File)
+	if err != nil {
+		return nil, err
+	}
+
+	state := &State{}
+	if err := json.Unmarshal(fileContent, state); err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 // GetStatus the status property.

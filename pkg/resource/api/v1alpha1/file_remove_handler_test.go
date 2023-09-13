@@ -37,6 +37,7 @@ spec:
 
 		When("file exists", func() {
 			appFs := afero.NewMemMapFs()
+			fileManager := file.New(appFs)
 
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
@@ -53,7 +54,7 @@ spec:
 			It("should plan to remove file", func() {
 				var resource api.Manager = NewFile(
 					logger,
-					appFs,
+					fileManager,
 					plan,
 				)
 
@@ -63,7 +64,7 @@ spec:
 				err = resource.Reconcile()
 				Expect(err).ToNot(HaveOccurred())
 
-				got := file.Exists(appFs, filePath)
+				got := fileManager.Exists(filePath)
 				Expect(got).Should(BeTrue())
 
 				Expect(resource.GetStatus()).To(Equal(api.Pending))
@@ -81,6 +82,7 @@ spec:
 
 		When("file does not exist", func() {
 			appFs := afero.NewMemMapFs()
+			fileManager := file.New(appFs)
 
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
@@ -89,7 +91,7 @@ spec:
 			It("should plan not remove file", func() {
 				var resource api.Manager = NewFile(
 					logger,
-					appFs,
+					fileManager,
 					plan,
 				)
 
@@ -119,6 +121,7 @@ spec:
 		When("file exists", func() {
 			When("remove succeeds", func() {
 				appFs := afero.NewMemMapFs()
+				fileManager := file.New(appFs)
 
 				BeforeEach(func() {
 					_ = appFs.MkdirAll(dir, 0o755)
@@ -135,7 +138,7 @@ spec:
 				It("should remove file", func() {
 					var resource api.Manager = NewFile(
 						logger,
-						appFs,
+						fileManager,
 						plan,
 					)
 
@@ -145,7 +148,7 @@ spec:
 					err = resource.Reconcile()
 					Expect(err).ToNot(HaveOccurred())
 
-					got := file.Exists(appFs, filePath)
+					got := fileManager.Exists(filePath)
 					Expect(got).Should(BeFalse())
 
 					Expect(resource.GetStatus()).To(Equal(api.Succeeded))
@@ -172,6 +175,7 @@ spec:
 
 		When("file does not exist", func() {
 			appFs := afero.NewMemMapFs()
+			fileManager := file.New(appFs)
 
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
@@ -180,7 +184,7 @@ spec:
 			It("should not remove file", func() {
 				var resource api.Manager = NewFile(
 					logger,
-					appFs,
+					fileManager,
 					plan,
 				)
 

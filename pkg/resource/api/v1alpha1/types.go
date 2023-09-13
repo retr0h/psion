@@ -6,6 +6,8 @@ import (
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/retr0h/psion/internal/file"
 )
 
 const (
@@ -36,6 +38,8 @@ type File struct {
 	appFs afero.Fs
 	// plan preview the changes to be made.
 	plan bool
+	// file manager repository.
+	file *file.File
 }
 
 // FileSpec is the specification of the desired behavior of the File.

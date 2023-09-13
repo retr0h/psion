@@ -5,8 +5,7 @@ import (
 	"io/fs"
 	"log/slog"
 
-	"github.com/spf13/afero"
-
+	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -31,7 +30,7 @@ func (f *FileSpec) GetModeString() string {
 // NewFile create a new instance of File.
 func NewFile(
 	logger *slog.Logger,
-	appFs afero.Fs,
+	fileManager *file.File,
 	plan bool,
 ) *File {
 	return &File{
@@ -41,7 +40,7 @@ func NewFile(
 		Spec:   &FileSpec{},
 		plan:   plan,
 		logger: logger,
-		appFs:  appFs,
+		file:   fileManager,
 	}
 }
 

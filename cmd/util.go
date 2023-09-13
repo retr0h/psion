@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/retr0h/psion/internal/config"
+	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/api/v1alpha1"
 )
@@ -43,9 +44,10 @@ func loadResourceFile(
 		return nil, fmt.Errorf("invalid kind: %s file: %s", runtimeConfig.Kind, filePath)
 	}
 
+	fileManager := file.New(appFs)
 	var resourceKind api.Manager = v1alpha1.NewFile(
 		logger,
-		appFs,
+		fileManager,
 		plan,
 	)
 

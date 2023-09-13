@@ -7,6 +7,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 
+	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -22,9 +23,12 @@ var statusCmd = &cobra.Command{
 		// occurs.
 		cmd.SilenceUsage = true
 
-		var state api.StateManager = api.NewState(appFs, stateFile)
-		var err error
-		state, err = state.GetState()
+		var (
+			fileManager api.FileSystemManager = file.New(appFs)
+			state       api.StateManager      = api.NewState(fileManager, stateFile)
+		)
+
+		state, err := state.GetState()
 		if err != nil {
 			return fmt.Errorf("cannot get state: %w", err)
 		}

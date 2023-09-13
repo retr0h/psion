@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/spf13/afero"
+	"io/fs"
 )
 
 // Phase is a label for the condition of the resource at the current time.
@@ -61,7 +61,7 @@ type StatusConditions struct {
 	Want string `json:"want,omitempty"`
 }
 
-// Manager interface all resources must implement.
+// Manager interface to files.
 type Manager interface {
 	Reconcile() error
 	GetStatus() Phase
@@ -79,10 +79,9 @@ type Manager interface {
 
 // State used by state file and status.
 type State struct {
-	Items []*StateResource `json:"items,omitempty"`
-	File  string           `json:"-"`
-	// appFs FileSystem abstraction.
-	appFs afero.Fs `json:"-"`
+	Items    []*StateResource  `json:"items,omitempty"`
+	FileName string            `json:"-"`
+	file     FileSystemManager `json:"-"`
 }
 
 // StateResource container holding resource state.
@@ -103,6 +102,13 @@ type StateManager interface {
 	SetItems(stateResource *StateResource)
 	SetState() error
 	GetState() (*State, error)
-	// allMatch(phase Phase) bool
-	// anyMatch(phase Phase) bool
+}
+
+// FileSystemManager interface to files.
+type FileSystemManager interface {
+	Read(filePath string) ([]byte, error)
+	Remove(filePath string) error
+	Exists(filePath string) bool
+	GetMode(filePath string) (fs.FileMode, error)
+	SetMode(filePath string, mode fs.FileMode) error
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -22,10 +23,11 @@ var applyCmd = &cobra.Command{
 		cmd.SilenceUsage = true
 
 		var (
-			plan  bool             = false
-			state api.StateManager = api.NewState(appFs, stateFile)
+			fileManager api.FileSystemManager = file.New(appFs)
+			state       api.StateManager      = api.NewState(fileManager, stateFile)
 		)
 
+		plan := false
 		resources, err := loadAllEmbeddedResourceFiles(plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)

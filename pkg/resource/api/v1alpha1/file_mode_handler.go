@@ -3,13 +3,12 @@ package v1alpha1
 import (
 	"fmt"
 
-	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 // doFileMode implementation to change file mode.
 func (f *File) doFileMode() {
-	fileMode, err := file.GetMode(f.appFs, f.Spec.GetPath())
+	fileMode, err := f.file.GetMode(f.Spec.GetPath())
 	if err != nil {
 		f.SetStatusCondition(
 			ModeAction, api.Failed, err.Error(), "Unknown", f.Spec.GetModeString())
@@ -42,7 +41,7 @@ func (f *File) doFileMode() {
 
 	// modes difer
 	if fileMode != f.Spec.GetMode() {
-		if err := file.SetMode(f.appFs, f.Spec.GetPath(), f.Spec.GetMode()); err != nil {
+		if err := f.file.SetMode(f.Spec.GetPath(), f.Spec.GetMode()); err != nil {
 			f.SetStatusCondition(
 				ModeAction, api.Failed, err.Error(), "Unknown", f.Spec.GetModeString())
 

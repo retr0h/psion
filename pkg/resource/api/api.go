@@ -3,10 +3,6 @@ package api
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/spf13/afero"
-
-	"github.com/retr0h/psion/internal/file"
 )
 
 // GetType the action property.
@@ -41,12 +37,12 @@ func (sc *StatusConditions) GetWant() string { return sc.Want }
 
 // NewState create a new instance of State.
 func NewState(
-	appFs afero.Fs,
+	fileManager FileSystemManager,
 	stateFile string,
 ) *State {
 	return &State{
-		File:  stateFile,
-		appFs: appFs,
+		FileName: stateFile,
+		file:     fileManager,
 	}
 }
 
@@ -124,12 +120,12 @@ func (s *State) SetState() error {
 		return err
 	}
 
-	return os.WriteFile(s.File, b, 0o644)
+	return os.WriteFile(s.FileName, b, 0o644)
 }
 
 // GetState read state from file and unmarshal.
 func (s *State) GetState() (*State, error) {
-	fileContent, err := file.Read(s.appFs, s.File)
+	fileContent, err := s.file.Read(s.FileName)
 	if err != nil {
 		return nil, err
 	}

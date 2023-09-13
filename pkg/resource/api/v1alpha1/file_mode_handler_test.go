@@ -39,6 +39,7 @@ spec:
 		When("file exists", func() {
 			When("modes differ", func() {
 				appFs := afero.NewMemMapFs()
+				fileManager := file.New(appFs)
 
 				BeforeEach(func() {
 					_ = appFs.MkdirAll(dir, 0o755)
@@ -55,7 +56,7 @@ spec:
 				It("should plan to update file modes", func() {
 					var resource api.Manager = NewFile(
 						logger,
-						appFs,
+						fileManager,
 						plan,
 					)
 
@@ -65,7 +66,7 @@ spec:
 					err = resource.Reconcile()
 					Expect(err).ToNot(HaveOccurred())
 
-					got := file.Exists(appFs, filePath)
+					got := fileManager.Exists(filePath)
 					Expect(got).Should(BeTrue())
 
 					Expect(resource.GetStatus()).To(Equal(api.Pending))
@@ -83,6 +84,7 @@ spec:
 
 			When("modes are the same", func() {
 				appFs := afero.NewMemMapFs()
+				fileManager := file.New(appFs)
 
 				BeforeEach(func() {
 					_ = appFs.MkdirAll(dir, 0o755)
@@ -99,7 +101,7 @@ spec:
 				It("should not plan to update file modes", func() {
 					var resource api.Manager = NewFile(
 						logger,
-						appFs,
+						fileManager,
 						plan,
 					)
 
@@ -109,7 +111,7 @@ spec:
 					err = resource.Reconcile()
 					Expect(err).ToNot(HaveOccurred())
 
-					got := file.Exists(appFs, filePath)
+					got := fileManager.Exists(filePath)
 					Expect(got).Should(BeTrue())
 
 					Expect(resource.GetStatus()).To(Equal(api.NoOp))
@@ -128,6 +130,7 @@ spec:
 
 		When("chown fails", func() {
 			appFs := afero.NewMemMapFs()
+			fileManager := file.New(appFs)
 
 			BeforeEach(func() {
 				_ = appFs.MkdirAll(dir, 0o755)
@@ -136,7 +139,7 @@ spec:
 			It("should have error", func() {
 				var resource api.Manager = NewFile(
 					logger,
-					appFs,
+					fileManager,
 					plan,
 				)
 
@@ -168,6 +171,7 @@ spec:
 		When("file exists", func() {
 			When("modes differ", func() {
 				appFs := afero.NewMemMapFs()
+				fileManager := file.New(appFs)
 
 				BeforeEach(func() {
 					_ = appFs.MkdirAll(dir, 0o755)
@@ -184,7 +188,7 @@ spec:
 				It("should update file modes", func() {
 					var resource api.Manager = NewFile(
 						logger,
-						appFs,
+						fileManager,
 						plan,
 					)
 
@@ -194,7 +198,7 @@ spec:
 					err = resource.Reconcile()
 					Expect(err).ToNot(HaveOccurred())
 
-					got, err := file.GetMode(appFs, filePath)
+					got, err := fileManager.GetMode(filePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(got).Should(Equal(fs.FileMode(0o700)))
 
@@ -221,6 +225,7 @@ spec:
 
 			When("modes are the same", func() {
 				appFs := afero.NewMemMapFs()
+				fileManager := file.New(appFs)
 
 				BeforeEach(func() {
 					_ = appFs.MkdirAll(dir, 0o755)
@@ -237,7 +242,7 @@ spec:
 				It("should not update file modes", func() {
 					var resource api.Manager = NewFile(
 						logger,
-						appFs,
+						fileManager,
 						plan,
 					)
 

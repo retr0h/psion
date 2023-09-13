@@ -1,13 +1,12 @@
 package v1alpha1
 
 import (
-	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 // fileRemoveHandler handler to manage file removal.
 func (f *File) fileRemoveHandler() {
-	if file.Exists(f.appFs, f.Spec.GetPath()) {
+	if f.file.Exists(f.Spec.GetPath()) {
 		f.doFileRemove()
 
 		return
@@ -26,7 +25,7 @@ func (f *File) doFileRemove() {
 		return
 	}
 
-	if err := file.Remove(f.appFs, f.Spec.GetPath()); err != nil {
+	if err := f.file.Remove(f.Spec.GetPath()); err != nil {
 		f.SetStatusCondition(
 			RemoveAction, api.Failed, err.Error(), "Unknown", "file removed")
 

@@ -1,5 +1,8 @@
 cmd/resources/
-dist/
+cobertura.xml
 cover.out
-report.xml
+dist/
+result.xml
 .state
+test/integration/tmp/
+.task/

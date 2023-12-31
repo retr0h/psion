@@ -22,5 +22,46 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
       - '^test:'
+      - "^chore"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: "Features"
+      regexp: "^.*?feat:.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*?fix:.*$"
+      order: 1
+    - title: "Chores"
+      regexp: "^.*?chore:.*$"
+      order: 2
+    - title: "Docs"
+      regexp: "^.*?docs:.*$"
+      order: 3
+    - title: "CI"
+      regexp: "^.*?ci:.*$"
+      order: 4
+    - title: "Build"
+      regexp: "^.*?build:.*$"
+      order: 5
+    - title: Others
+      order: 999
+# brews:
+#   - repository:
+#       owner: retr0h
+#       name: homebrew-tap
+#     folder: Formula
+#     goarm: "7"
+#     homepage: https://github.com/retr0h/psion
+#     description: A GIT layering tool
+#     license: MIT
+#     test: |
+#       system "#{bin}/goreleaser -v"
+#     dependencies:
+#       - name: go
+#         type: optional
+#       - name: git

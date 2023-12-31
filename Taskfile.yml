@@ -5,32 +5,39 @@ vars:
   GIT_ROOT:
     sh: git rev-parse --show-toplevel
   MAIN_PACKAGE: main.go
-  VET_CMD: $(go env GOPATH)/bin/golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
-  UNIT_CMD: $(go env GOPATH)/bin/ginkgo --randomize-suites -v --race ./...
-  COV_CMD: |
-    result=$(go test -race -coverprofile cover.out ./...)
-    status=$?
 
-    echo "$result"
-
-    if test $status -ne 0; then
-      exit $status
-    fi
-
-    echo "$result" | "$(go env GOPATH)"/bin/go-junit-report > report.xml
+includes:
+  docs:
+    taskfile: ./docs
+    dir: ./docs
 
 tasks:
   deps:
     desc: Install dependencies
     cmds:
-      - go install github.com/onsi/ginkgo/v2/ginkgo@v2.9.4
-      - go install mvdan.cc/gofumpt@latest
-      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
-      # someone nuked govulncheck's versions on Dec 8th and currently we can use 'latest'
-      - go install golang.org/x/vuln/cmd/govulncheck@v0.0.0-20221208180742-f2dca5ff4cc3
+      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+      - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@v1.1.0
+      - go install golang.org/x/vuln/cmd/govulncheck@v1.0.1
       - go install github.com/jstemmer/go-junit-report@v0.9.1
-      - go install github.com/segmentio/golines@latest
+      - go install github.com/segmentio/golines@v0.11.0
+      - go install github.com/golang/mock/mockgen@v1.6.0
+      - go install github.com/boumenot/gocover-cobertura@v1.2.0
+      - go install mvdan.cc/gofumpt@fd93f1d8818fc86a956b9706ad8b81734c81cc1e
       - go install github.com/goreleaser/goreleaser@latest
+
+  deps:check:
+    desc: Check dependencies needed for development
+    cmds:
+      - echo "Dependency check OK"
+    preconditions:
+      - sh: "[ '{{OS}}' = 'darwin' ]"
+        msg: Operating System '{{OS}}' not supported
+
+      - sh: command -v jq
+        msg: |
+          'jq' not found in $PATH
+
+          Suggested action: 'brew install jq'
 
   mod:
     desc: Module maintenance
@@ -41,7 +48,7 @@ tasks:
   vet:
     desc: Report likely mistakes in packages
     cmds:
-      - "{{ .VET_CMD }}"
+      - $(go env GOPATH)/bin/golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
 
   vuln:
     desc: Run Go's vulnerability scanner
@@ -56,17 +63,26 @@ tasks:
   unit:
     desc: Test packages
     cmds:
-      - "{{ .UNIT_CMD }}"
+      # - go test -parallel 5 -race -v ./...
+      - go test -race -v ./...
 
   unit:int:
     desc: Integration test packages
+    vars:
+      ARCH: '{{default "amd64_v1" .ARCH}}'
+      GOOS: '{{default "darwin" .GOOS}}'
     cmds:
       - task: build
       - touch /tmp/foo /tmp/bar /tmp/baz
-      - dist/psion_darwin_amd64_v1/psion apply
+      - "dist/psion_{{.GOOS}}_{{.ARCH}}/psion apply"
       - test ! -f /tmp/foo
       - test ! -f /tmp/bar
       - test -x /tmp/baz
+
+  unit:bats:
+    desc: Integration bats test packages
+    cmds:
+      - ./test/integration/vendor/bats/bin/bats test/integration
 
   test:
     desc: Test all
@@ -81,7 +97,15 @@ tasks:
   cov:
     desc: Generate coverage
     cmds:
-      - "{{ .COV_CMD }}"
+      - go test -race -coverprofile=cover.out -v $(go list ./... | egrep -v '(/test|/test/mock)$') 2>&1 | go-junit-report --set-exit-code > result.xml || (cat result.xml && echo "fail" && exit 1)
+      - $(go env GOPATH)/bin/gocover-cobertura < cover.out > cobertura.xml
+      - go tool cover -func=cover.out
+
+  cov:map:
+    desc: Generate coverage and show heatmap
+    cmds:
+      - task: cov
+      - go tool cover -html=cover.out
 
   fmt:
     desc: Reformat files whose formatting differs from `go_fmt_command`
@@ -102,3 +126,11 @@ tasks:
       - rm -f cmd/resources/*
       - cp resources.d/*.yaml cmd/resources/
       - goreleaser release --snapshot --clean
+
+  mockgen:
+    desc: Generate mock for interface
+    cmds:
+      - mockgen -source=internal/git.go -destination=internal/mocks/git/git_mock.go -package=git
+      - mockgen -source=internal/repository.go -destination=internal/mocks/repository/repository_mock.go -package=repository
+      - mockgen -source=internal/exec.go -destination=internal/mocks/exec/exec_mock.go -package=exec
+      - mockgen -source=internal/repository/types.go -destination=internal/mocks/repository/copy_mock.go -package=repository

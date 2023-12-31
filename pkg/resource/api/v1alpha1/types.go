@@ -4,7 +4,6 @@ import (
 	"log/slog"
 
 	"github.com/retr0h/psion/pkg/resource/api"
-	"github.com/spf13/afero"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/retr0h/psion/internal/file"
@@ -35,7 +34,7 @@ type File struct {
 	// logger logger to be used.
 	logger *slog.Logger
 	// appFs FileSystem abstraction.
-	appFs afero.Fs
+	// appFs afero.Fs
 	// plan preview the changes to be made.
 	plan bool
 	// file manager repository.

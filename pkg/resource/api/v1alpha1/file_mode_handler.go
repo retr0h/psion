@@ -62,6 +62,4 @@ func (f *File) doFileMode() {
 	// modes are the same
 	f.SetStatusCondition(
 		ModeAction, api.NoOp, "modes same", fileModeString, f.Spec.GetModeString())
-
-	return
 }

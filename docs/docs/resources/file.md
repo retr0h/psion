@@ -1,8 +1,10 @@
-# Resource
+---
+sidebar_position: 1
+---
 
-## File
+# File
 
-### Remove
+## Remove
 
 Remove the specified file:
 
@@ -16,7 +18,7 @@ spec:
   exists: false
 ```
 
-### Mode
+## Mode
 
 Set file to the specified mode:
 

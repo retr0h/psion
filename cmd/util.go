@@ -65,14 +65,14 @@ func getAllEmbeddedResourceFiles() ([]*ResourceFilesInfo, error) {
 			return nil
 		}
 
-		sHA256String, err := hashEmbededFile(eFs, filePath)
-		if err != nil {
-			return err
+		checksum := "unknown"
+		if sHA256String, _ := hashEmbededFile(eFs, filePath); sHA256String != "" {
+			checksum = sHA256String
 		}
 
 		resourceFilesInfo := &ResourceFilesInfo{
 			Path:     filePath,
-			Checksum: sHA256String,
+			Checksum: checksum,
 			Type:     "SHA256",
 		}
 

@@ -12,8 +12,6 @@ func (f *File) fileRemoveHandler() {
 		return
 	}
 	f.noFileRemove()
-
-	return
 }
 
 // doFileRemove implementation to remove file.
@@ -34,8 +32,6 @@ func (f *File) doFileRemove() {
 
 	f.SetStatusCondition(
 		RemoveAction, api.Succeeded, "file removed", "exists false", "exists false")
-
-	return
 }
 
 // noFileRemove implementation to not remove removal.
@@ -49,6 +45,4 @@ func (f *File) noFileRemove() {
 
 	f.SetStatusCondition(
 		RemoveAction, api.NoOp, "file does not exist", "exists false", "exists false")
-
-	return
 }

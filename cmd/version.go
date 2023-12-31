@@ -46,15 +46,11 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			var response string
 			var resourceFilesInfo []*ResourceFilesInfo
-			var err error
 
 			versionInfo := getVersion()
 
-			resourceFilesInfo, err = getAllEmbeddedResourceFiles()
-			if err != nil {
-				resourceFilesInfo = resourceFilesInfo
-			}
-
+			// ignoring error here for now
+			resourceFilesInfo, _ = getAllEmbeddedResourceFiles()
 			versionInfo.ResourceFiles = resourceFilesInfo
 
 			if shortened {

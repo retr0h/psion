@@ -160,7 +160,7 @@ func (f *File) Reconcile() error {
 }
 
 func (f *File) logStatusConditionGroups() []any {
-	var logGroups []any
+	logGroups := make([]any, 0, len(f.Status.Conditions))
 	for _, condition := range f.Status.Conditions {
 		group := slog.Group(condition.GetTypeString(),
 			slog.String("Status", condition.GetStatusString()),

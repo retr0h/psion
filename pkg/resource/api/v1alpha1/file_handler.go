@@ -11,6 +11,4 @@ func (f *File) fileHandler() {
 	if f.Spec.GetMode() != 0 {
 		f.doFileMode()
 	}
-
-	return
 }

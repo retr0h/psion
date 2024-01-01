@@ -10,12 +10,14 @@ require (
 	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
+	github.com/stretchr/testify v1.8.3
 	go.hein.dev/go-version v0.1.0
 	k8s.io/apimachinery v0.28.0
 	sigs.k8s.io/yaml v1.3.0
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
@@ -33,6 +35,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

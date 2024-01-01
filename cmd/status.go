@@ -7,6 +7,7 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 
+	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
@@ -24,8 +25,8 @@ var statusCmd = &cobra.Command{
 		cmd.SilenceUsage = true
 
 		var (
-			fileManager api.FileSystemManager = file.New(appFs)
-			state       api.StateManager      = api.NewState(fileManager, stateFile)
+			fileManager internal.FileManager = file.New(appFs)
+			state       api.StateManager     = api.NewState(fileManager, stateFile)
 		)
 
 		state, err := state.GetState()

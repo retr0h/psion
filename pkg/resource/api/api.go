@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"os"
+
+	"github.com/retr0h/psion/internal"
 )
 
 // GetType the action property.
@@ -37,12 +39,12 @@ func (sc *StatusConditions) GetWant() string { return sc.Want }
 
 // NewState create a new instance of State.
 func NewState(
-	fileManager FileSystemManager,
+	fileManager internal.FileManager,
 	stateFile string,
 ) *State {
 	return &State{
-		FileName: stateFile,
-		file:     fileManager,
+		FileName:    stateFile,
+		fileManager: fileManager,
 	}
 }
 
@@ -125,7 +127,7 @@ func (s *State) SetState() error {
 
 // GetState read state from file and unmarshal.
 func (s *State) GetState() (*State, error) {
-	fileContent, err := s.file.Read(s.FileName)
+	fileContent, err := s.fileManager.Read(s.FileName)
 	if err != nil {
 		return nil, err
 	}

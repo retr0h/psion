@@ -1,7 +1,7 @@
 package api
 
 import (
-	"io/fs"
+	"github.com/retr0h/psion/internal"
 )
 
 // Phase is a label for the condition of the resource at the current time.
@@ -79,9 +79,9 @@ type Manager interface {
 
 // State used by state file and status.
 type State struct {
-	Items    []*StateResource  `json:"items,omitempty"`
-	FileName string            `json:"-"`
-	file     FileSystemManager `json:"-"`
+	Items       []*StateResource     `json:"items,omitempty"`
+	FileName    string               `json:"-"`
+	fileManager internal.FileManager `json:"-"`
 }
 
 // StateResource container holding resource state.
@@ -102,13 +102,4 @@ type StateManager interface {
 	SetItems(stateResource *StateResource)
 	SetState() error
 	GetState() (*State, error)
-}
-
-// FileSystemManager interface to files.
-type FileSystemManager interface {
-	Read(filePath string) ([]byte, error)
-	Remove(filePath string) error
-	Exists(filePath string) bool
-	GetMode(filePath string) (fs.FileMode, error)
-	SetMode(filePath string, mode fs.FileMode) error
 }

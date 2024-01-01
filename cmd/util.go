@@ -10,6 +10,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/config"
 	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
@@ -26,7 +27,8 @@ func loadResourceFile(
 		return nil, err
 	}
 
-	runtimeConfig, err := config.LoadRuntimeConfig(fileContent)
+	var c internal.ConfigManager = config.New()
+	runtimeConfig, err := c.GetConfig(fileContent)
 	if err != nil {
 		return nil, err
 	}

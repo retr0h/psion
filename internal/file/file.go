@@ -53,6 +53,45 @@ func (f *File) Read(
 	}
 }
 
+// Remove removes the named file if exists.
+func (f *File) Remove(
+	filePath string,
+) error {
+	return f.appFs.Remove(filePath)
+}
+
+// Exists reports if the named file or directory exists.
+func (f *File) Exists(
+	filePath string,
+) bool {
+	if _, err := f.appFs.Stat(filePath); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+// GetMode returns the named files mode.
+func (f *File) GetMode(
+	filePath string,
+) (fs.FileMode, error) {
+	fileInfo, err := f.appFs.Stat(filePath)
+	if err != nil {
+		return 0, err
+	}
+
+	return fileInfo.Mode(), nil
+}
+
+// SetMode sets the named files mode.
+func (f *File) SetMode(
+	filePath string,
+	mode fs.FileMode,
+) error {
+	return f.appFs.Chmod(filePath, mode)
+}
+
 // // Copy copies the contents of the src file to the dst file.
 // func Copy(
 // 	appFs afero.Fs,
@@ -78,25 +117,6 @@ func (f *File) Read(
 
 // 	return w.Close()
 // }
-
-// Remove removes the named file if exists.
-func (f *File) Remove(
-	filePath string,
-) error {
-	return f.appFs.Remove(filePath)
-}
-
-// Exists reports if the named file or directory exists.
-func (f *File) Exists(
-	filePath string,
-) bool {
-	if _, err := f.appFs.Stat(filePath); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
-}
 
 // // Size returns the named files size in bytes.
 // func Size(
@@ -162,23 +182,3 @@ func (f *File) Exists(
 
 // 	return false, nil
 // }
-
-// GetMode returns the named files mode.
-func (f *File) GetMode(
-	filePath string,
-) (fs.FileMode, error) {
-	fileInfo, err := f.appFs.Stat(filePath)
-	if err != nil {
-		return 0, err
-	}
-
-	return fileInfo.Mode(), nil
-}
-
-// SetMode sets the named files mode.
-func (f *File) SetMode(
-	filePath string,
-	mode fs.FileMode,
-) error {
-	return f.appFs.Chmod(filePath, mode)
-}

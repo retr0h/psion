@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.13.2
 	github.com/onsi/gomega v1.29.0
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.16.0
 	go.hein.dev/go-version v0.1.0
 	k8s.io/apimachinery v0.28.0

@@ -12,7 +12,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	go.hein.dev/go-version v0.1.0
 	k8s.io/apimachinery v0.29.0
-	sigs.k8s.io/yaml v1.3.0
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (

@@ -6,7 +6,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.9
 	github.com/lmittmann/tint v1.0.3
 	github.com/onsi/ginkgo/v2 v2.13.2
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2

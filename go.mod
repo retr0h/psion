@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/jedib0t/go-pretty/v6 v6.5.3
 	github.com/lmittmann/tint v1.0.3
-	github.com/onsi/ginkgo/v2 v2.14.0
+	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0

@@ -1,25 +1,25 @@
-package v1alpha1
+package file
 
 import (
 	"fmt"
 	"io/fs"
 	"log/slog"
 
-	"github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
 // GetExists the exists property.
-func (f *FileSpec) GetExists() bool { return f.Exists }
+func (f *Spec) GetExists() bool { return f.Exists }
 
 // GetPath the path property.
-func (f *FileSpec) GetPath() string { return f.Path }
+func (f *Spec) GetPath() string { return f.Path }
 
 // GetMode the mode property.
-func (f *FileSpec) GetMode() fs.FileMode { return fs.FileMode(f.Mode) }
+func (f *Spec) GetMode() fs.FileMode { return fs.FileMode(f.Mode) }
 
 // GetModeString the mode property as an octal string.
-func (f *FileSpec) GetModeString() string {
+func (f *Spec) GetModeString() string {
 	if f.Mode == 0 {
 		return ""
 	}
@@ -27,17 +27,17 @@ func (f *FileSpec) GetModeString() string {
 	return fmt.Sprintf("0%o", f.Mode)
 }
 
-// NewFile create a new instance of File.
-func NewFile(
+// New create a new instance of File.
+func New(
 	logger *slog.Logger,
-	fileManager *file.File,
+	fileManager internal.FileManager,
 	plan bool,
 ) *File {
 	return &File{
 		Status: &api.Status{
 			Conditions: make([]api.StatusConditions, 0, 1),
 		},
-		Spec:   &FileSpec{},
+		Spec:   &Spec{},
 		plan:   plan,
 		logger: logger,
 		file:   fileManager,
@@ -148,7 +148,7 @@ func (f *File) Reconcile() error {
 		slog.String("Status", f.GetStatusString()),
 		slog.String("Kind", f.Kind),
 		slog.String("APIVersion", f.APIVersion),
-		slog.Group(FileKind,
+		slog.Group(Kind,
 			slog.String("Path", f.Spec.GetPath()),
 			slog.Bool("Exists", f.Spec.GetExists()),
 			slog.String("Mode", f.Spec.GetModeString()),

@@ -1,4 +1,4 @@
-package v1alpha1
+package file
 
 import (
 	"github.com/retr0h/psion/pkg/resource/api"

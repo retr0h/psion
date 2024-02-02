@@ -1,4 +1,4 @@
-package v1alpha1
+package file
 
 import (
 	"log/slog"
@@ -6,14 +6,14 @@ import (
 	"github.com/retr0h/psion/pkg/resource/api"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/internal"
 )
 
 const (
-	// FileKind resource used to manage File resources.
-	FileKind = "File"
-	// FileAPIVersion current version of File API.
-	FileAPIVersion = "files.psion.io/v1alpha1"
+	// Kind resource used to manage this resource.
+	Kind = "File"
+	// APIVersion current version of File API.
+	APIVersion = "files.psion.io/v1alpha1"
 
 	// RemoveAction action type.
 	RemoveAction api.SpecAction = "Remove"
@@ -27,7 +27,7 @@ type File struct {
 	metav1.TypeMeta   `json:",omitempty,inline"`
 
 	// Spec represents specification of the desired File behavior.
-	Spec *FileSpec `json:"spec"`
+	Spec *Spec `json:"spec"`
 	// Status contains status of the File.
 	Status *api.Status `json:"status"`
 
@@ -38,11 +38,11 @@ type File struct {
 	// plan preview the changes to be made.
 	plan bool
 	// file manager repository.
-	file *file.File
+	file internal.FileManager
 }
 
-// FileSpec is the specification of the desired behavior of the File.
-type FileSpec struct {
+// Spec is the specification of the desired behavior of the File.
+type Spec struct {
 	// Exists should file be created or deleted.
 	Exists bool `json:"exists"`
 	// Path to the file creating or deleting.

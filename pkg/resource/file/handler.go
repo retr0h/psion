@@ -1,4 +1,4 @@
-package v1alpha1
+package file
 
 // fileHandler handler to manage file changes.
 func (f *File) fileHandler() {

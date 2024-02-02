@@ -12,9 +12,9 @@ import (
 
 	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/config"
-	"github.com/retr0h/psion/internal/file"
+	intFile "github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
-	"github.com/retr0h/psion/pkg/resource/api/v1alpha1"
+	"github.com/retr0h/psion/pkg/resource/file"
 )
 
 func loadResourceFile(
@@ -33,7 +33,7 @@ func loadResourceFile(
 		return nil, err
 	}
 
-	if runtimeConfig.APIVersion != v1alpha1.FileAPIVersion {
+	if runtimeConfig.APIVersion != file.APIVersion {
 		return nil, fmt.Errorf(
 			"invalid apiVersion: %s file: %s",
 			runtimeConfig.APIVersion,
@@ -42,12 +42,12 @@ func loadResourceFile(
 	}
 
 	// currently only support the File Kind
-	if runtimeConfig.Kind != v1alpha1.FileKind {
+	if runtimeConfig.Kind != file.Kind {
 		return nil, fmt.Errorf("invalid kind: %s file: %s", runtimeConfig.Kind, filePath)
 	}
 
-	fileManager := file.New(appFs)
-	var resourceKind api.Manager = v1alpha1.NewFile(
+	fileManager := intFile.New(appFs)
+	var resourceKind api.Manager = file.New(
 		logger,
 		fileManager,
 		plan,

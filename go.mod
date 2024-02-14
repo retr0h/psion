@@ -10,7 +10,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	go.hein.dev/go-version v0.1.0
-	k8s.io/apimachinery v0.29.1
+	k8s.io/apimachinery v0.29.2
 	sigs.k8s.io/yaml v1.4.0
 )
 

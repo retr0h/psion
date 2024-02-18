@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"github.com/retr0h/psion/internal/state"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -9,7 +10,7 @@ type Manager interface {
 	Reconcile() error
 	GetStatus() api.Phase
 	GetStatusString() string
-	GetStatusConditions() []api.StatusConditions
+	GetStatusConditions() []state.StatusConditions
 	SetStatusCondition(
 		statusType api.SpecAction,
 		status api.Phase,
@@ -17,5 +18,5 @@ type Manager interface {
 		got string,
 		want string,
 	)
-	GetState() *api.StateResource
+	GetState() *state.StateResource
 }

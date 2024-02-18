@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/retr0h/psion/internal"
+	"github.com/retr0h/psion/internal/state"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -34,8 +35,8 @@ func New(
 	plan bool,
 ) *File {
 	return &File{
-		Status: &api.Status{
-			Conditions: make([]api.StatusConditions, 0, 1),
+		Status: &state.Status{
+			Conditions: make([]state.StatusConditions, 0, 1),
 		},
 		Spec:   &Spec{},
 		plan:   plan,
@@ -96,7 +97,7 @@ func (f *File) anyMatch(phase api.Phase) bool {
 }
 
 // GetStatusConditions the conditions property.
-func (f *File) GetStatusConditions() []api.StatusConditions { return f.Status.Conditions }
+func (f *File) GetStatusConditions() []state.StatusConditions { return f.Status.Conditions }
 
 // SetStatusCondition set the status condition property.
 func (f *File) SetStatusCondition(
@@ -111,7 +112,7 @@ func (f *File) SetStatusCondition(
 		reason = api.Plan
 	}
 
-	fileStatusConditions := api.StatusConditions{
+	fileStatusConditions := state.StatusConditions{
 		Type:    statusType,
 		Status:  status,
 		Message: message,
@@ -126,13 +127,13 @@ func (f *File) SetStatusCondition(
 }
 
 // GetState provide current state after apply.
-func (f *File) GetState() *api.StateResource {
-	return &api.StateResource{
+func (f *File) GetState() *state.StateResource {
+	return &state.StateResource{
 		Name:       f.Name,
 		Kind:       f.Kind,
 		APIVersion: f.APIVersion,
 		Phase:      f.GetStatus(),
-		Status: &api.Status{
+		Status: &state.Status{
 			Phase:      f.GetStatus(),
 			Conditions: f.GetStatusConditions(),
 		},

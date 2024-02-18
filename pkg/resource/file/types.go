@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/retr0h/psion/internal"
-	"github.com/retr0h/psion/internal/state"
+	"github.com/retr0h/psion/internal/status"
 )
 
 const (
@@ -30,7 +30,7 @@ type File struct {
 	// Spec represents specification of the desired File behavior.
 	Spec *Spec `json:"spec"`
 	// Status contains status of the File.
-	Status *state.Status `json:"status"`
+	Status *status.Status `json:"status"`
 
 	// logger logger to be used.
 	logger *slog.Logger

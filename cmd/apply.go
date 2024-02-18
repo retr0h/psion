@@ -8,6 +8,7 @@ import (
 
 	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/internal/state"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
 
@@ -25,7 +26,7 @@ var applyCmd = &cobra.Command{
 
 		var (
 			fileManager internal.FileManager = file.New(appFs)
-			state       api.StateManager     = api.NewState(fileManager, stateFile)
+			state       state.Manager        = api.NewState(fileManager, stateFile)
 		)
 
 		plan := false

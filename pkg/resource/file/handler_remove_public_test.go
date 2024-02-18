@@ -15,6 +15,7 @@ import (
 
 	"github.com/retr0h/psion/internal"
 	intFile "github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/pkg/resource"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/file"
 )
@@ -59,7 +60,7 @@ func (suite *RemoveHandlerPublicTestSuite) TestPlanReconcileRemoveOk() {
 	)
 
 	plan := true
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -85,7 +86,7 @@ func (suite *RemoveHandlerPublicTestSuite) TestPlanReconcileRemoveOk() {
 
 func (suite *RemoveHandlerPublicTestSuite) TestPlanReconcileRemoveOkWhenFileDoesNotExist() {
 	plan := true
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -118,7 +119,7 @@ func (suite *RemoveHandlerPublicTestSuite) TestApplyReconcileRemoveOk() {
 	)
 
 	plan := false
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -147,7 +148,7 @@ func (suite *RemoveHandlerPublicTestSuite) TestApplyReconcileRemoveOk() {
 
 func (suite *RemoveHandlerPublicTestSuite) TestApplyReconcileRemoveOkWhenFileDoesNotExist() {
 	plan := false
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,

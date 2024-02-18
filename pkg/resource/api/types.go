@@ -61,22 +61,6 @@ type StatusConditions struct {
 	Want string `json:"want,omitempty"`
 }
 
-// Manager interface to files.
-type Manager interface {
-	Reconcile() error
-	GetStatus() Phase
-	GetStatusString() string
-	GetStatusConditions() []StatusConditions
-	SetStatusCondition(
-		statusType SpecAction,
-		status Phase,
-		message string,
-		got string,
-		want string,
-	)
-	GetState() *StateResource
-}
-
 // State used by state file and status.
 type State struct {
 	Items       []*StateResource     `json:"items,omitempty"`
@@ -92,14 +76,4 @@ type StateResource struct {
 
 	Phase  Phase   `json:"phase,omitempty"`
 	Status *Status `json:"status"`
-}
-
-// StateManager interface to state.
-type StateManager interface {
-	GetStatus() Phase
-	GetStatusString() string
-	GetItems() []*StateResource
-	SetItems(stateResource *StateResource)
-	SetState() error
-	GetState() (*State, error)
 }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/retr0h/psion/internal"
 	intFile "github.com/retr0h/psion/internal/file"
+	"github.com/retr0h/psion/pkg/resource"
 	"github.com/retr0h/psion/pkg/resource/api"
 	"github.com/retr0h/psion/pkg/resource/file"
 )
@@ -60,7 +61,7 @@ func (suite *ModeHandlerPublicTestSuite) TestPlanReconcileModesOk() {
 	)
 
 	plan := true
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -93,7 +94,7 @@ func (suite *ModeHandlerPublicTestSuite) TestPlanReconcileModesSameOk() {
 	)
 
 	plan := true
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -119,7 +120,7 @@ func (suite *ModeHandlerPublicTestSuite) TestPlanReconcileModesSameOk() {
 
 func (suite *ModeHandlerPublicTestSuite) TestPlanReconcileModesOkWhenFileDoesNotExist() {
 	plan := true
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -152,7 +153,7 @@ func (suite *ModeHandlerPublicTestSuite) TestApplyReconcileModesOk() {
 	)
 
 	plan := false
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -189,7 +190,7 @@ func (suite *ModeHandlerPublicTestSuite) TestApplyReconcileModesSameOk() {
 	)
 
 	plan := false
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,
@@ -215,7 +216,7 @@ func (suite *ModeHandlerPublicTestSuite) TestApplyReconcileModesSameOk() {
 
 func (suite *ModeHandlerPublicTestSuite) TestApplyReconcileModesOkWhenFileDoesNotExist() {
 	plan := false
-	var resource api.Manager = file.New(
+	var resource resource.Manager = file.New(
 		suite.logger,
 		suite.f,
 		plan,

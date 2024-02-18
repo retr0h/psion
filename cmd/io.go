@@ -13,14 +13,14 @@ import (
 	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/config"
 	intFile "github.com/retr0h/psion/internal/file"
-	"github.com/retr0h/psion/pkg/resource/api"
+	"github.com/retr0h/psion/pkg/resource"
 	"github.com/retr0h/psion/pkg/resource/file"
 )
 
 func loadResourceFile(
 	filePath string,
 	plan bool,
-) (api.Manager, error) {
+) (resource.Manager, error) {
 	// read from the embedded fs
 	fileContent, err := eFs.ReadFile(filePath)
 	if err != nil {
@@ -47,7 +47,7 @@ func loadResourceFile(
 	}
 
 	fileManager := intFile.New(appFs)
-	var resourceKind api.Manager = file.New(
+	var resourceKind resource.Manager = file.New(
 		logger,
 		fileManager,
 		plan,
@@ -90,13 +90,13 @@ func getAllEmbeddedResourceFiles() ([]*ResourceFilesInfo, error) {
 
 func loadAllEmbeddedResourceFiles(
 	plan bool,
-) ([]api.Manager, error) {
+) ([]resource.Manager, error) {
 	files, err := getAllEmbeddedResourceFiles()
 	if err != nil {
 		return nil, err
 	}
 
-	resources := make([]api.Manager, 0, 1)
+	resources := make([]resource.Manager, 0, 1)
 	for _, resourceFileInfo := range files {
 		resourceFile, err := loadResourceFile(resourceFileInfo.Path, plan)
 		if err != nil {

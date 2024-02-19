@@ -14,3 +14,6 @@ type StateManager interface {
 	SetState() error
 	GetState() (*state.State, error)
 }
+
+// func (s *State) allMatch(phase api.Phase) bool {
+// func (s *State) anyMatch(phase api.Phase) bool {

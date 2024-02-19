@@ -14,7 +14,7 @@ type Manager interface {
 	GetStatusConditions() []status.StatusConditions
 	SetStatusCondition(
 		statusType api.SpecAction,
-		status api.Phase,
+		phase api.Phase,
 		message string,
 		got string,
 		want string,

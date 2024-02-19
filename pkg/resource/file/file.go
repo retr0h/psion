@@ -103,7 +103,7 @@ func (f *File) GetStatusConditions() []status.StatusConditions { return f.Status
 // SetStatusCondition set the status condition property.
 func (f *File) SetStatusCondition(
 	statusType api.SpecAction,
-	status_ api.Phase,
+	phase api.Phase,
 	message string,
 	got string,
 	want string,
@@ -115,7 +115,7 @@ func (f *File) SetStatusCondition(
 
 	fileStatusConditions := status.StatusConditions{
 		Type:    statusType,
-		Status:  status_,
+		Status:  phase,
 		Message: message,
 		Reason:  reason,
 		Got:     got,

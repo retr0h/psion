@@ -1,12 +1,21 @@
 package internal
 
 import (
-	"github.com/retr0h/psion/internal/config"
+	// remove
+	"github.com/retr0h/psion/pkg/api"
 )
 
 // ConfigManager manager responsible for Config operations.
 type ConfigManager interface {
-	GetConfig(
+	LoadConfig(
 		fileContent []byte,
-	) (*config.Config, error)
+	) error
+	GetName() string
+	GetAPIVersion() string
+	GetKind() string
+
+	LoadAllEmbeddedResourceFiles(
+		plan bool,
+	) ([]api.ResourceManager, error)
+	GetAllEmbeddedFileNames() ([]string, error)
 }

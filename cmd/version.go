@@ -1,42 +1,18 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
-	goVersion "go.hein.dev/go-version"
+
+	"github.com/retr0h/psion/internal"
+	"github.com/retr0h/psion/internal/version"
 )
-
-// getVersion return the sensor's VersionInfo details.
-func getVersion() *Info {
-	versionOutput := goVersion.New(version, commit, date)
-
-	output := &Info{
-		Version: versionOutput.Version,
-		Commit:  versionOutput.Commit,
-		Date:    versionOutput.Date,
-	}
-
-	return output
-}
-
-// toJSON converts the Info into a JSON String.
-func (v *Info) toJSON() string {
-	bytes, _ := json.Marshal(v)
-
-	return string(bytes)
-}
-
-// toShortened converts the Version into a String.
-func (v *Info) toShortened() string {
-	return fmt.Sprintf("Version: %s\n", v.Version)
-}
 
 // versionCmd represents the version command.
 var (
 	shortened  = false
-	version    = "dev"
+	ver        = "dev"
 	commit     = "none"
 	date       = "unknown"
 	output     = "json"
@@ -44,19 +20,20 @@ var (
 		Use:   "version",
 		Short: "Display the version of tool",
 		Run: func(cmd *cobra.Command, args []string) {
+			var vm internal.VersionManager = version.New()
 			var response string
-			var resourceFilesInfo []*ResourceFilesInfo
+			// var resourceFilesInfo []*ResourceFilesInfo
 
-			versionInfo := getVersion()
+			vm.LoadVersion(ver, commit, date)
 
-			// ignoring error here for now
-			resourceFilesInfo, _ = getAllEmbeddedResourceFiles()
-			versionInfo.ResourceFiles = resourceFilesInfo
+			// // ignoring error here for now
+			// resourceFilesInfo, _ = getAllEmbeddedResourceFiles()
+			// versionInfo.ResourceFiles = resourceFilesInfo
 
 			if shortened {
-				response = versionInfo.toShortened()
+				response = vm.ToShortened()
 			} else {
-				response = versionInfo.toJSON()
+				response = vm.ToJSON()
 			}
 
 			fmt.Printf("%s\n", response)

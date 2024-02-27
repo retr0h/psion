@@ -18,13 +18,13 @@ type FilePublicTestSuite struct {
 
 	appDir string
 	appFs  afero.Fs
-	f      internal.FileManager
+	fm     internal.FileManager
 }
 
 func (suite *FilePublicTestSuite) SetupTest() {
 	suite.appDir = "/app"
 	suite.appFs = afero.NewMemMapFs()
-	suite.f = file.New(suite.appFs)
+	suite.fm = file.New(suite.appFs)
 }
 
 func (suite *FilePublicTestSuite) TestReadOk() {
@@ -36,13 +36,13 @@ func (suite *FilePublicTestSuite) TestReadOk() {
 	}
 	createFileSpecs(specs)
 
-	got, err := suite.f.Read(specs[0].srcFile)
+	got, err := suite.fm.Read(specs[0].srcFile)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), "mockContent", string(got))
 }
 
 func (suite *FilePublicTestSuite) TestReadReturnsErrorWhenFileDoesNotExist() {
-	_, err := suite.f.Read("does-not-exist")
+	_, err := suite.fm.Read("does-not-exist")
 	assert.Error(suite.T(), err)
 }
 
@@ -55,15 +55,15 @@ func (suite *FilePublicTestSuite) TestRemoveOk() {
 	}
 	createFileSpecs(specs)
 
-	err := suite.f.Remove(specs[0].srcFile)
+	err := suite.fm.Remove(specs[0].srcFile)
 	assert.NoError(suite.T(), err)
 
-	got := suite.f.Exists(specs[0].srcFile)
+	got := suite.fm.Exists(specs[0].srcFile)
 	assert.False(suite.T(), got)
 }
 
 func (suite *FilePublicTestSuite) TestRemoveReturnsErrorWhenFileDoesNotExist() {
-	err := suite.f.Remove("does-not-exist")
+	err := suite.fm.Remove("does-not-exist")
 	assert.Error(suite.T(), err)
 }
 
@@ -76,12 +76,12 @@ func (suite *FilePublicTestSuite) TestExistsOk() {
 	}
 	createFileSpecs(specs)
 
-	got := suite.f.Exists(specs[0].srcFile)
+	got := suite.fm.Exists(specs[0].srcFile)
 	assert.True(suite.T(), got)
 }
 
 func (suite *FilePublicTestSuite) TestExistsReturnsFalseWhenFileDoesNotExist() {
-	got := suite.f.Exists("does-not-exist")
+	got := suite.fm.Exists("does-not-exist")
 	assert.False(suite.T(), got)
 }
 
@@ -94,13 +94,13 @@ func (suite *FilePublicTestSuite) TestGetModeOk() {
 	}
 	createFileSpecs(specs)
 
-	got, err := suite.f.GetMode(specs[0].srcFile)
+	got, err := suite.fm.GetMode(specs[0].srcFile)
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), fs.FileMode(0o644), got)
 }
 
 func (suite *FilePublicTestSuite) TestGetModeReturnsErrorWhenFileDoesNotExist() {
-	_, err := suite.f.GetMode("does-not-exist")
+	_, err := suite.fm.GetMode("does-not-exist")
 	assert.Error(suite.T(), err)
 }
 
@@ -113,15 +113,15 @@ func (suite *FilePublicTestSuite) TestGetSetModeOk() {
 	}
 	createFileSpecs(specs)
 
-	err := suite.f.SetMode(specs[0].srcFile, 0o777)
+	err := suite.fm.SetMode(specs[0].srcFile, 0o777)
 	assert.NoError(suite.T(), err)
 
-	got, _ := suite.f.GetMode(specs[0].srcFile)
+	got, _ := suite.fm.GetMode(specs[0].srcFile)
 	assert.Equal(suite.T(), fs.FileMode(0o777), got)
 }
 
 func (suite *FilePublicTestSuite) TestSetModeReturnsErrorWhenFileDoesNotExist() {
-	err := suite.f.SetMode("does-not-exist", 0o777)
+	err := suite.fm.SetMode("does-not-exist", 0o777)
 	assert.Error(suite.T(), err)
 }
 

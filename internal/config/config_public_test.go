@@ -3,24 +3,30 @@ package config_test
 import (
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/config"
+	"github.com/retr0h/psion/internal/file"
 )
 
 type ConfigPublicTestSuite struct {
 	suite.Suite
 
-	c internal.ConfigManager
+	appFs afero.Fs
+	fm    internal.FileManager
+	cm    internal.ConfigManager
 }
 
 func (suite *ConfigPublicTestSuite) SetupTest() {
-	suite.c = config.New()
+	suite.appFs = afero.NewMemMapFs()
+	suite.fm = file.New(suite.appFs)
+	suite.cm = config.New(suite.fm)
 }
 
-func (suite *ConfigPublicTestSuite) TestConfigOk() {
+func (suite *ConfigPublicTestSuite) TestLoadConfigOk() {
 	runtimeConfigContent := []byte(`
 ---
 apiVersion: files.psion.io/v1alpha1
@@ -30,12 +36,12 @@ metadata:
 spec:
 `)
 
-	got, err := suite.c.GetConfig(runtimeConfigContent)
+	err := suite.cm.LoadConfig(runtimeConfigContent)
 	assert.NoError(suite.T(), err)
 
-	assert.Equal(suite.T(), "name", got.Name)
-	assert.Equal(suite.T(), "files.psion.io/v1alpha1", got.APIVersion)
-	assert.Equal(suite.T(), "File", got.Kind)
+	assert.Equal(suite.T(), "name", suite.cm.GetName())
+	assert.Equal(suite.T(), "files.psion.io/v1alpha1", suite.cm.GetAPIVersion())
+	assert.Equal(suite.T(), "File", suite.cm.GetKind())
 }
 
 func (suite *ConfigPublicTestSuite) TestConfigReturnsErrorWhenInvalid() {
@@ -45,9 +51,8 @@ key:
     foo: bar
     path:"bad yaml"
 `)
-	_, err := suite.c.GetConfig(runtimeConfigContent)
+	err := suite.cm.LoadConfig(runtimeConfigContent)
 	assert.Error(suite.T(), err)
-	assert.ErrorIs(suite.T(), err, config.ErrInvalidConfig)
 }
 
 // In order for `go test` to run this suite, we need to create

@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"log/slog"
-
-	"github.com/spf13/cobra"
+	// "log/slog"
 
 	"github.com/retr0h/psion/internal"
+	"github.com/retr0h/psion/internal/config"
 	"github.com/retr0h/psion/internal/file"
-	"github.com/retr0h/psion/internal/state"
+	"github.com/spf13/cobra"
+	// "github.com/retr0h/psion/internal/state"
 )
 
 // applyCmd represents the apply command.
@@ -24,31 +24,35 @@ var applyCmd = &cobra.Command{
 		cmd.SilenceUsage = true
 
 		var (
-			fileManager internal.FileManager = file.New(appFs)
-			state       StateManager         = state.New(fileManager, stateFile)
+			fm internal.FileManager   = file.New(appFs)
+			cm internal.ConfigManager = config.New(eFs, fm)
 		)
+		// state       internal.StateManager = state.New(fileManager, stateFile)
 
 		plan := false
-		resources, err := loadAllEmbeddedResourceFiles(plan)
+		resources, err := cm.LoadAllEmbeddedResourceFiles(plan)
 		if err != nil {
 			return fmt.Errorf("cannot walk dir: %w", err)
 		}
 
-		for _, resource := range resources {
-			if err := resource.Reconcile(); err != nil {
-				return fmt.Errorf("cannot reconcile: %w", err)
-			}
-			state.SetItems(resource.GetState())
-		}
+		fmt.Println("HERE")
+		fmt.Println(resources)
 
-		if err := state.SetState(); err != nil {
-			return fmt.Errorf("cannot write state file: %w", err)
-		}
+		// for _, resource := range resources {
+		// 	if err := resource.Reconcile(); err != nil {
+		// 		return fmt.Errorf("cannot reconcile: %w", err)
+		// 	}
+		// 	state.SetItems(resource.GetState())
+		// }
 
-		logger.Info(
-			"wrote state file",
-			slog.String("StateFile", stateFile),
-		)
+		// if err := state.SetState(); err != nil {
+		// 	return fmt.Errorf("cannot write state file: %w", err)
+		// }
+
+		// logger.Info(
+		// 	"wrote state file",
+		// 	slog.String("StateFile", stateFile),
+		// )
 
 		return nil
 	},

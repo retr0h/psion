@@ -1,4 +1,4 @@
-package cmd
+package version
 
 // Info creates a formattable struct for output.
 type Info struct {

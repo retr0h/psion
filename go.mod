@@ -3,7 +3,7 @@ module github.com/retr0h/psion
 go 1.21
 
 require (
-	github.com/jedib0t/go-pretty/v6 v6.5.5
+	github.com/jedib0t/go-pretty/v6 v6.5.6
 	github.com/lmittmann/tint v1.0.4
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0

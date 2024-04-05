@@ -3,7 +3,7 @@ module github.com/retr0h/psion
 go 1.21
 
 require (
-	github.com/jedib0t/go-pretty/v6 v6.5.6
+	github.com/jedib0t/go-pretty/v6 v6.5.7
 	github.com/lmittmann/tint v1.0.4
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
@@ -42,7 +42,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.19.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

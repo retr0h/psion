@@ -1,13 +1,13 @@
 module github.com/retr0h/psion
 
 go 1.21
-toolchain go1.22.3
+toolchain go1.22.4
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.5.9
 	github.com/lmittmann/tint v1.0.4
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	go.hein.dev/go-version v0.1.0

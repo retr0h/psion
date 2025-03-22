@@ -1,7 +1,6 @@
 module github.com/retr0h/psion
 
-go 1.21
-toolchain go1.22.5
+go 1.24
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.6.7

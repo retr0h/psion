@@ -15,7 +15,7 @@ tasks:
   deps:
     desc: Install dependencies
     cmds:
-      - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+      - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
       - go install github.com/princjef/gomarkdoc/cmd/gomarkdoc@v1.1.0
       - go install golang.org/x/vuln/cmd/govulncheck@v1.0.1
       - go install github.com/jstemmer/go-junit-report@v0.9.1
@@ -48,7 +48,7 @@ tasks:
   vet:
     desc: Report likely mistakes in packages
     cmds:
-      - $(go env GOPATH)/bin/golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
+      - golangci-lint run --config {{ .GIT_ROOT }}/.golangci.yml
 
   vuln:
     desc: Run Go's vulnerability scanner

@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.6.7
-	github.com/lmittmann/tint v1.0.7
+	github.com/lmittmann/tint v1.1.1
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1

@@ -10,7 +10,7 @@ require (
 	github.com/spf13/afero v1.14.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	go.hein.dev/go-version v0.1.0
 	k8s.io/apimachinery v0.33.3
 	sigs.k8s.io/yaml v1.5.0

@@ -30,7 +30,9 @@ import (
 )
 
 // styleHelp adapts Cobra's command tree to the CLI renderer.
-func styleHelp(root *cobra.Command) {
+func styleHelp(
+	root *cobra.Command,
+) {
 	root.SetHelpFunc(func(cmd *cobra.Command, _ []string) {
 		out := cmd.OutOrStdout()
 		// Cobra's help hook cannot return write errors.
@@ -43,7 +45,10 @@ func styleHelp(root *cobra.Command) {
 	})
 }
 
-func commandHelp(cmd *cobra.Command, banner bool) cli.Help {
+func commandHelp(
+	cmd *cobra.Command,
+	banner bool,
+) cli.Help {
 	help := cli.Help{
 		Name:        cmd.CommandPath(),
 		Description: cmd.Long,

@@ -83,9 +83,64 @@ just go-vet
 
 The enabled linters and any existing-code exceptions live in
 [.golangci.yml](.golangci.yml). Keep exceptions narrow and remove them when the
-corresponding declarations change. The initial baseline records six unused
-callback parameters and three unused test-suite fields; the provider code has
-not been rewritten to adopt this tooling.
+corresponding declarations change.
+
+### Function signatures and file names
+
+Functions and methods with parameters put one parameter on each line, with the
+closing parenthesis and return types on their own line. This includes test
+functions. Declarations without parameters stay on one line; function literals,
+interface methods, and generated files are exempt.
+
+```go
+func Render(
+    out io.Writer,
+    theme Theme,
+) error {
+    // ...
+}
+```
+
+Name files for what they contain; avoid catch-all names such as `helpers.go` and
+`utils.go`. `types.go` is for declarations and methods intrinsic to those types.
+Standalone behavior belongs in a file named for what it does. Test files
+normally match the production filename. `export_test.go` and tests of a contract
+spanning several files are deliberate exceptions.
+
+Omit unused receiver names. Use `_` for unused parameters. Keep errors in the
+package that produces them, and preserve error chains with `%w` so callers can
+use `errors.Is` and `errors.As`.
+
+### Test doubles and generated code
+
+Generate doubles for project-owned interfaces with the module's pinned
+`mockgen`; do not handwrite implementations of those interfaces for tests. Keep
+the `go:generate` directive in a `generate.go` and commit the generated mock.
+Exported interfaces use a sibling `mocks/` package with its own `generate.go`
+and `*.gen.go` output. Unexported interfaces keep `generate.go` and
+`*.gen_test.go` in their own package to avoid import cycles.
+
+For an exported interface in `types.go`, a sibling `mocks/generate.go` contains
+the MIT header, the package declaration, and the pinned generator directive:
+
+```go
+package mocks
+
+//go:generate go tool go.uber.org/mock/mockgen -source=../types.go -destination=types.gen.go -package=mocks
+```
+
+Run `mise exec -- just generate` after changing the interface. Do not hand-edit
+the generated output.
+
+Handwritten doubles are appropriate for standard library interfaces such as
+`io.Writer`, for doubles that perform the real behavior under test, and for
+asynchronous recorders whose lifecycle prevents mock expectations. Explain the
+last case where the recorder is declared. Inject collaborators per test instead
+of replacing package globals.
+
+Use Go for application logic and generators. Generated files keep their markers
+and are not hand-edited; handwritten Go files carry the MIT header. Run
+formatters only on handwritten files.
 
 ## Documentation
 
@@ -115,10 +170,51 @@ detector and coverage. Reports go into `.coverage/`. `.coverignore` excludes
 command wiring; Codecov uses that same filtered profile. Coverage targets track
 the existing baseline.
 
-Tests live beside the code they cover. New public API tests use
-`*_public_test.go` in the external test package. Existing Ginkgo and Testify
-suites remain supported. Host-changing tests belong on disposable targets or in
-temporary directories, not against the example paths in `resources.d/`.
+Tests live beside the code they cover. Host-changing tests belong on disposable
+targets or in temporary directories, not against the example paths in
+`resources.d/`.
+
+### Test file conventions
+
+- Public tests are `*_public_test.go` in the external `<package>_test` package.
+  This is the default, including tests of packages under `internal/`.
+- Internal tests are `*_test.go` in the production package, only for behavior
+  the exported surface cannot reach. The filename and package clause must agree.
+- Name suites `{Name}PublicTestSuite` or `{Name}TestSuite` to match the test
+  type.
+- Use `testify/suite` with named, table-driven cases and `s.Run` subtests. Each
+  suite has a normal `Test{Name}PublicTestSuite` or `Test{Name}TestSuite` entry
+  point that calls `suite.Run`.
+- Use one suite method per function under test. Put success, failure, and edge
+  cases in rows of that method's table instead of separate test methods.
+- Use Testify assertions. `s.Require()` stops a case when a prerequisite fails;
+  `s.Equal`, `s.Contains`, and related assertions check independent results.
+  Check error identity with `ErrorIs` and details with `ErrorAs` when
+  applicable.
+- `export_test.go` may expose an unexported helper by alias or setter when it
+  has its own contract. Do not re-test a helper already exercised through a
+  caller.
+- Use temporary directories and `t.Cleanup` for filesystem resources, and
+  `t.Setenv` for environment changes. Tests that change process environment or
+  other shared state must not run in parallel.
+
+### Coverage while developing
+
+Start with the package being changed:
+
+```bash
+mise exec -- just go_packages=./internal/cli/... go-unit-cov
+```
+
+Read the per-function report and cover success, error, and boundary behavior
+while the change is fresh. Assert observable results, including write failures
+and terminal behavior, rather than calling code only to increase coverage.
+`.coverignore` excludes command wiring; CLI rendering remains measured. Do not
+add exclusions merely because code is difficult to test. The existing Codecov
+targets are declared in `.github/codecov.yml`.
+
+Run the full formatting, lint, race-test, and build checks once before
+submitting or committing, rather than between every local edit.
 
 Before submitting a change:
 

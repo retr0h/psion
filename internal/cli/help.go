@@ -41,7 +41,10 @@ type Help struct {
 }
 
 // Render writes a help page using a theme bound to its diagnostic destination.
-func (help Help) Render(out io.Writer, theme Theme) error {
+func (help Help) Render(
+	out io.Writer,
+	theme Theme,
+) error {
 	var page strings.Builder
 	if help.Banner {
 		fmt.Fprintf(&page, "\n  %s\n", strings.ReplaceAll(theme.Banner(), "\n", "\n  "))
@@ -68,7 +71,12 @@ func (help Help) Render(out io.Writer, theme Theme) error {
 	return err
 }
 
-func writeHelpItems(page *strings.Builder, theme Theme, title string, items []Item) {
+func writeHelpItems(
+	page *strings.Builder,
+	theme Theme,
+	title string,
+	items []Item,
+) {
 	if len(items) == 0 {
 		return
 	}

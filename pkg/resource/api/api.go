@@ -1,3 +1,23 @@
+// Copyright (c) 2026 John Dewey
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 package api
 
 import (
@@ -20,7 +40,11 @@ func (sc *StatusConditions) GetStatus() Phase { return sc.Status }
 func (sc *StatusConditions) GetMessage() string { return sc.Message }
 
 // SetMessage set the message property.
-func (sc *StatusConditions) SetMessage(message string) { sc.Message = message }
+func (sc *StatusConditions) SetMessage(
+	message string,
+) {
+	sc.Message = message
+}
 
 // GetReason the reason property.
 func (sc *StatusConditions) GetReason() Action { return sc.Reason }
@@ -93,7 +117,9 @@ func (s *State) SetItems(
 // GetStatusString the status property as a string.
 func (s *State) GetStatusString() string { return string(s.GetStatus()) }
 
-func (s *State) allMatch(phase Phase) bool {
+func (s *State) allMatch(
+	phase Phase,
+) bool {
 	for _, resource := range s.Items {
 		if resource.GetStatus() != phase {
 			return false
@@ -103,7 +129,9 @@ func (s *State) allMatch(phase Phase) bool {
 	return true
 }
 
-func (s *State) anyMatch(phase Phase) bool {
+func (s *State) anyMatch(
+	phase Phase,
+) bool {
 	for _, resource := range s.Items {
 		if resource.GetStatus() == phase {
 			return true

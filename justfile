@@ -67,16 +67,16 @@ go-mod-check:
 
 # Format handwritten Go files
 go-fmt:
-    fd -t f -e go -E '*.gen.go' -E '*.pb.go' -0 | xargs -0 {{ gofumpt }} -w
-    fd -t f -e go -E '*.gen.go' -E '*.pb.go' -0 | xargs -0 {{ golines }} --base-formatter='{{ gofumpt }}' -w
+    fd -t f -e go -E '*.gen.go' -E '*.gen_test.go' -E '*.pb.go' -0 | xargs -0 {{ gofumpt }} -w
+    fd -t f -e go -E '*.gen.go' -E '*.gen_test.go' -E '*.pb.go' -0 | xargs -0 {{ golines }} --base-formatter='{{ gofumpt }}' -w
 
 # Check Go formatting without rewriting source
 go-fmt-check:
     #!/usr/bin/env bash
     set -euo pipefail
-    changes=$(fd -t f -e go -E '*.gen.go' -E '*.pb.go' -0 | xargs -0 {{ gofumpt }} -l)
+    changes=$(fd -t f -e go -E '*.gen.go' -E '*.gen_test.go' -E '*.pb.go' -0 | xargs -0 {{ gofumpt }} -l)
     if [ -n "$changes" ]; then echo "$changes"; exit 1; fi
-    changes=$(fd -t f -e go -E '*.gen.go' -E '*.pb.go' -0 | xargs -0 {{ golines }} --dry-run --base-formatter='{{ gofumpt }}' -l)
+    changes=$(fd -t f -e go -E '*.gen.go' -E '*.gen_test.go' -E '*.pb.go' -0 | xargs -0 {{ golines }} --dry-run --base-formatter='{{ gofumpt }}' -l)
     if [ -n "$changes" ]; then echo "$changes"; exit 1; fi
 
 # Run the repository's configured linters

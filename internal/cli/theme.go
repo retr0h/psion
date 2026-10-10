@@ -45,7 +45,9 @@ func (mode *ColorMode) String() string { return string(*mode) }
 func (*ColorMode) Type() string { return "mode" }
 
 // Set validates the flag value before changing the mode.
-func (mode *ColorMode) Set(value string) error {
+func (mode *ColorMode) Set(
+	value string,
+) error {
 	switch value {
 	case "auto", "always", "never":
 		*mode = ColorMode(value)
@@ -56,7 +58,9 @@ func (mode *ColorMode) Set(value string) error {
 }
 
 // Enabled detects color on the destination, honoring explicit flags and NO_COLOR.
-func (mode ColorMode) Enabled(out io.Writer) bool {
+func (mode ColorMode) Enabled(
+	out io.Writer,
+) bool {
 	if mode == "always" {
 		return true
 	}
@@ -73,7 +77,10 @@ type Theme struct {
 }
 
 // NewTheme binds the palette to the actual terminal or output sink.
-func NewTheme(out io.Writer, mode ColorMode) Theme {
+func NewTheme(
+	out io.Writer,
+	mode ColorMode,
+) Theme {
 	renderer := lipgloss.NewRenderer(out)
 	profile := termenv.Ascii
 	if mode.Enabled(out) {
@@ -95,7 +102,9 @@ func NewTheme(out io.Writer, mode ColorMode) Theme {
 }
 
 // Title renders a heading in the project's accent color.
-func (theme Theme) Title(value string) string {
+func (theme Theme) Title(
+	value string,
+) string {
 	return theme.Accent.Bold(true).Render(value)
 }
 
@@ -105,7 +114,9 @@ func (theme Theme) Banner() string {
 }
 
 // Phase renders a resource condition with the corresponding status color.
-func (theme Theme) Phase(value string) string {
+func (theme Theme) Phase(
+	value string,
+) string {
 	switch value {
 	case "Succeeded":
 		return theme.OK.Render(value)

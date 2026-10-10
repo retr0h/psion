@@ -1,290 +1,190 @@
+// Copyright (c) 2026 John Dewey
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 package file_test
 
 import (
 	"io/fs"
-	"path/filepath"
 	"testing"
 
 	"github.com/spf13/afero"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/file"
 )
 
 type FilePublicTestSuite struct {
 	suite.Suite
-
-	appDir string
-	appFs  afero.Fs
-	f      internal.FileManager
 }
 
-func (suite *FilePublicTestSuite) SetupTest() {
-	suite.appDir = "/app"
-	suite.appFs = afero.NewMemMapFs()
-	suite.f = file.New(suite.appFs)
+func (s *FilePublicTestSuite) TestRead() {
+	tests := []struct {
+		name    string
+		exists  bool
+		content string
+		wantErr error
+	}{
+		{name: "existing file", exists: true, content: "mockContent"},
+		{name: "missing file", wantErr: fs.ErrNotExist},
+	}
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			appFs := afero.NewMemMapFs()
+			if tc.exists {
+				s.Require().NoError(afero.WriteFile(appFs, "/file.txt", []byte(tc.content), 0o644))
+			}
+			got, err := file.New(appFs).Read("/file.txt")
+			if tc.wantErr != nil {
+				s.ErrorIs(err, tc.wantErr)
+				s.Nil(got)
+				return
+			}
+			s.Require().NoError(err)
+			s.Equal(tc.content, string(got))
+		})
+	}
 }
 
-func (suite *FilePublicTestSuite) TestReadOk() {
-	specs := []FileSpec{
+func (s *FilePublicTestSuite) TestRemove() {
+	tests := []struct {
+		name       string
+		exists     bool
+		readOnly   bool
+		wantErr    error
+		wantExists bool
+	}{
+		{name: "existing file", exists: true},
+		{name: "missing file", wantErr: fs.ErrNotExist},
 		{
-			appFs:   suite.appFs,
-			srcFile: filepath.Join(suite.appDir, "1.txt"),
+			name:       "read only filesystem",
+			exists:     true,
+			readOnly:   true,
+			wantErr:    fs.ErrPermission,
+			wantExists: true,
 		},
 	}
-	createFileSpecs(specs)
-
-	got, err := suite.f.Read(specs[0].srcFile)
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), "mockContent", string(got))
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			appFs := afero.NewMemMapFs()
+			if tc.exists {
+				s.Require().
+					NoError(afero.WriteFile(appFs, "/file.txt", []byte("mockContent"), 0o644))
+			}
+			if tc.readOnly {
+				appFs = afero.NewReadOnlyFs(appFs)
+			}
+			err := file.New(appFs).Remove("/file.txt")
+			s.ErrorIs(err, tc.wantErr)
+			exists, err := afero.Exists(appFs, "/file.txt")
+			s.Require().NoError(err)
+			s.Equal(tc.wantExists, exists)
+		})
+	}
 }
 
-func (suite *FilePublicTestSuite) TestReadReturnsErrorWhenFileDoesNotExist() {
-	_, err := suite.f.Read("does-not-exist")
-	assert.Error(suite.T(), err)
+func (s *FilePublicTestSuite) TestExists() {
+	tests := []struct {
+		name   string
+		exists bool
+	}{
+		{name: "existing file", exists: true},
+		{name: "missing file"},
+	}
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			appFs := afero.NewMemMapFs()
+			if tc.exists {
+				s.Require().
+					NoError(afero.WriteFile(appFs, "/file.txt", []byte("mockContent"), 0o644))
+			}
+			s.Equal(tc.exists, file.New(appFs).Exists("/file.txt"))
+		})
+	}
 }
 
-func (suite *FilePublicTestSuite) TestRemoveOk() {
-	specs := []FileSpec{
+func (s *FilePublicTestSuite) TestGetMode() {
+	tests := []struct {
+		name    string
+		exists  bool
+		mode    fs.FileMode
+		wantErr error
+	}{
+		{name: "regular file", exists: true, mode: 0o644},
+		{name: "executable file", exists: true, mode: 0o755},
+		{name: "missing file", wantErr: fs.ErrNotExist},
+	}
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			appFs := afero.NewMemMapFs()
+			if tc.exists {
+				s.Require().
+					NoError(afero.WriteFile(appFs, "/file.txt", []byte("mockContent"), tc.mode))
+			}
+			got, err := file.New(appFs).GetMode("/file.txt")
+			s.ErrorIs(err, tc.wantErr)
+			s.Equal(tc.mode, got)
+		})
+	}
+}
+
+func (s *FilePublicTestSuite) TestSetMode() {
+	tests := []struct {
+		name     string
+		exists   bool
+		readOnly bool
+		wantErr  error
+		wantMode fs.FileMode
+	}{
+		{name: "existing file", exists: true, wantMode: 0o700},
+		{name: "missing file", wantErr: fs.ErrNotExist},
 		{
-			appFs:   suite.appFs,
-			srcFile: filepath.Join(suite.appDir, "1.txt"),
+			name:     "read only filesystem",
+			exists:   true,
+			readOnly: true,
+			wantErr:  fs.ErrPermission,
+			wantMode: 0o644,
 		},
 	}
-	createFileSpecs(specs)
-
-	err := suite.f.Remove(specs[0].srcFile)
-	assert.NoError(suite.T(), err)
-
-	got := suite.f.Exists(specs[0].srcFile)
-	assert.False(suite.T(), got)
-}
-
-func (suite *FilePublicTestSuite) TestRemoveReturnsErrorWhenFileDoesNotExist() {
-	err := suite.f.Remove("does-not-exist")
-	assert.Error(suite.T(), err)
-}
-
-func (suite *FilePublicTestSuite) TestExistsOk() {
-	specs := []FileSpec{
-		{
-			appFs:   suite.appFs,
-			srcFile: filepath.Join(suite.appDir, "1.txt"),
-		},
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			appFs := afero.NewMemMapFs()
+			if tc.exists {
+				s.Require().
+					NoError(afero.WriteFile(appFs, "/file.txt", []byte("mockContent"), 0o644))
+			}
+			if tc.readOnly {
+				appFs = afero.NewReadOnlyFs(appFs)
+			}
+			err := file.New(appFs).SetMode("/file.txt", 0o700)
+			s.ErrorIs(err, tc.wantErr)
+			if tc.exists {
+				info, err := appFs.Stat("/file.txt")
+				s.Require().NoError(err)
+				s.Equal(tc.wantMode, info.Mode())
+			}
+		})
 	}
-	createFileSpecs(specs)
-
-	got := suite.f.Exists(specs[0].srcFile)
-	assert.True(suite.T(), got)
 }
 
-func (suite *FilePublicTestSuite) TestExistsReturnsFalseWhenFileDoesNotExist() {
-	got := suite.f.Exists("does-not-exist")
-	assert.False(suite.T(), got)
-}
-
-func (suite *FilePublicTestSuite) TestGetModeOk() {
-	specs := []FileSpec{
-		{
-			appFs:   suite.appFs,
-			srcFile: filepath.Join(suite.appDir, "1.txt"),
-		},
-	}
-	createFileSpecs(specs)
-
-	got, err := suite.f.GetMode(specs[0].srcFile)
-	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), fs.FileMode(0o644), got)
-}
-
-func (suite *FilePublicTestSuite) TestGetModeReturnsErrorWhenFileDoesNotExist() {
-	_, err := suite.f.GetMode("does-not-exist")
-	assert.Error(suite.T(), err)
-}
-
-func (suite *FilePublicTestSuite) TestGetSetModeOk() {
-	specs := []FileSpec{
-		{
-			appFs:   suite.appFs,
-			srcFile: filepath.Join(suite.appDir, "1.txt"),
-		},
-	}
-	createFileSpecs(specs)
-
-	err := suite.f.SetMode(specs[0].srcFile, 0o777)
-	assert.NoError(suite.T(), err)
-
-	got, _ := suite.f.GetMode(specs[0].srcFile)
-	assert.Equal(suite.T(), fs.FileMode(0o777), got)
-}
-
-func (suite *FilePublicTestSuite) TestSetModeReturnsErrorWhenFileDoesNotExist() {
-	err := suite.f.SetMode("does-not-exist", 0o777)
-	assert.Error(suite.T(), err)
-}
-
-// err := cm.CopyFile(specs[0].srcFile, assertFile)
-// got, _ := afero.Exists(suite.appFs, assertFile)
-// assert.True(suite.T(), got)
-
-// var _ = Describe("Copy", func() {
-// 	appFs := afero.NewMemMapFs()
-// 	dir := "/app"
-// 	srcFile := filepath.Join(dir, "srcFile")
-// 	dstFile := filepath.Join(dir, "dstFile")
-
-// 	BeforeEach(func() {
-// 		_ = appFs.MkdirAll(dir, 0o755)
-// 	})
-
-// 	When("dstFile does not exist", func() {
-// 		BeforeEach(func() {
-// 			err := afero.WriteFile(
-// 				appFs,
-// 				srcFile,
-// 				[]byte("mockContent"),
-// 				0o644,
-// 			)
-// 			Expect(err).ToNot(HaveOccurred())
-// 		})
-
-// 		It("should copy srcFile to dstFile", func() {
-// 			err := Copy(appFs, srcFile, dstFile)
-// 			Expect(err).ToNot(HaveOccurred())
-
-// 			got := Exists(appFs, dstFile)
-// 			Expect(got).Should(BeTrue())
-// 		})
-// 	})
-
-// 	When("srcFile does not exist", func() {
-// 		It("should have error", func() {
-// 			appFs := afero.NewMemMapFs()
-
-// 			err := Copy(appFs, "does-not-exist", "dst")
-// 			Expect(err).To(HaveOccurred())
-// 		})
-// 	})
-// })
-
-// var _ = Describe("Size", func() {
-// 	When("file exists", func() {
-// 		appFs := afero.NewMemMapFs()
-// 		dir := "/app"
-// 		filePath := filepath.Join(dir, "filePath")
-
-// 		BeforeEach(func() {
-// 			_ = appFs.MkdirAll(dir, 0o755)
-
-// 			err := afero.WriteFile(
-// 				appFs,
-// 				filePath,
-// 				[]byte("mockContent"),
-// 				0o644,
-// 			)
-// 			Expect(err).ToNot(HaveOccurred())
-// 		})
-
-// 		It("should return file length in bytes", func() {
-// 			got, err := Size(appFs, filePath)
-// 			Expect(err).ToNot(HaveOccurred())
-// 			Expect(got).Should(Equal(int64(11)))
-// 		})
-// 	})
-
-// 	When("file does not exist", func() {
-// 		It("should have error", func() {
-// 			appFs := afero.NewMemMapFs()
-
-// 			_, err := Size(appFs, "does-not-exist")
-// 			Expect(err).To(HaveOccurred())
-// 		})
-// 	})
-// })
-
-// var _ = Describe("HashFile", func() {
-// 	When("file exists", func() {
-// 		appFs := afero.NewMemMapFs()
-// 		dir := "/app"
-// 		filePath := filepath.Join(dir, "filePath")
-
-// 		BeforeEach(func() {
-// 			_ = appFs.MkdirAll(dir, 0o755)
-
-// 			err := afero.WriteFile(
-// 				appFs,
-// 				filePath,
-// 				[]byte("mockContent"),
-// 				0o644,
-// 			)
-// 			Expect(err).ToNot(HaveOccurred())
-// 		})
-
-// 		It("should return SHA1-hash of file contents", func() {
-// 			got, err := HashFile(appFs, filePath)
-// 			Expect(err).ToNot(HaveOccurred())
-// 			Expect(got).Should(Equal("a388678dad3db361c9198ea665070210e58a0fe5"))
-// 		})
-// 	})
-
-// 	When("file does not exist", func() {
-// 		It("should have error", func() {
-// 			appFs := afero.NewMemMapFs()
-
-// 			_, err := HashFile(appFs, "does-not-exist")
-// 			Expect(err).To(HaveOccurred())
-// 		})
-// 	})
-// })
-
-// var _ = Describe("Identical", func() {
-// 	When("file exists", func() {
-// 		appFs := afero.NewMemMapFs()
-// 		dir := "/app"
-// 		a := filepath.Join(dir, "a")
-// 		b := filepath.Join(dir, "b")
-
-// 		BeforeEach(func() {
-// 			_ = appFs.MkdirAll(dir, 0o755)
-
-// 			err := afero.WriteFile(
-// 				appFs,
-// 				a,
-// 				[]byte("mockContent"),
-// 				0o644,
-// 			)
-// 			Expect(err).ToNot(HaveOccurred())
-
-// 			err = afero.WriteFile(
-// 				appFs,
-// 				b,
-// 				[]byte("mockContent"),
-// 				0o644,
-// 			)
-// 			Expect(err).ToNot(HaveOccurred())
-// 		})
-
-// 		It("should be true", func() {
-// 			got, err := Identical(appFs, a, b)
-// 			Expect(err).ToNot(HaveOccurred())
-// 			Expect(got).Should(BeTrue())
-// 		})
-// 	})
-
-// 	When("file does not exist", func() {
-// 		It("should have error", func() {
-// 			appFs := afero.NewMemMapFs()
-
-// 			_, err := Identical(appFs, "does-not-exist-1", "does-not-exist-2")
-// 			Expect(err).To(HaveOccurred())
-// 		})
-// 	})
-// })
-
-// In order for `go test` to run this suite, we need to create
-// a normal test function and pass our suite to suite.Run.
-func TestFilePublicTestSuite(t *testing.T) {
+func TestFilePublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(FilePublicTestSuite))
 }

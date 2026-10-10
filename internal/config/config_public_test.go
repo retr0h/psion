@@ -1,57 +1,89 @@
+// Copyright (c) 2026 John Dewey
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+
 package config_test
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/retr0h/psion/internal"
 	"github.com/retr0h/psion/internal/config"
 )
 
 type ConfigPublicTestSuite struct {
 	suite.Suite
-
-	c internal.ConfigManager
 }
 
-func (suite *ConfigPublicTestSuite) SetupTest() {
-	suite.c = config.New()
-}
-
-func (suite *ConfigPublicTestSuite) TestConfigOk() {
-	runtimeConfigContent := []byte(`
----
+func (s *ConfigPublicTestSuite) TestGetConfig() {
+	tests := []struct {
+		name           string
+		content        string
+		wantName       string
+		wantAPIVersion string
+		wantKind       string
+		wantErr        error
+	}{
+		{
+			name: "resource metadata",
+			content: `
 apiVersion: files.psion.io/v1alpha1
 kind: File
 metadata:
   name: name
 spec:
-`)
-
-	got, err := suite.c.GetConfig(runtimeConfigContent)
-	assert.NoError(suite.T(), err)
-
-	assert.Equal(suite.T(), "name", got.Name)
-	assert.Equal(suite.T(), "files.psion.io/v1alpha1", got.APIVersion)
-	assert.Equal(suite.T(), "File", got.Kind)
-}
-
-func (suite *ConfigPublicTestSuite) TestConfigReturnsErrorWhenInvalid() {
-	runtimeConfigContent := []byte(`
----
+`,
+			wantName:       "name",
+			wantAPIVersion: "files.psion.io/v1alpha1",
+			wantKind:       "File",
+		},
+		{
+			name: "invalid YAML",
+			content: `
 key:
     foo: bar
     path:"bad yaml"
-`)
-	_, err := suite.c.GetConfig(runtimeConfigContent)
-	assert.Error(suite.T(), err)
-	assert.ErrorIs(suite.T(), err, config.ErrInvalidConfig)
+`,
+			wantErr: config.ErrInvalidConfig,
+		},
+		{name: "empty document"},
+	}
+	for _, tc := range tests {
+		s.Run(tc.name, func() {
+			got, err := config.New().GetConfig([]byte(tc.content))
+			if tc.wantErr != nil {
+				s.ErrorIs(err, tc.wantErr)
+				s.Nil(got)
+				return
+			}
+			s.Require().NoError(err)
+			s.Require().NotNil(got)
+			s.Equal(tc.wantName, got.Name)
+			s.Equal(tc.wantAPIVersion, got.APIVersion)
+			s.Equal(tc.wantKind, got.Kind)
+		})
+	}
 }
 
-// In order for `go test` to run this suite, we need to create
-// a normal test function and pass our suite to suite.Run.
-func TestConfigPublicTestSuite(t *testing.T) {
+func TestConfigPublicTestSuite(
+	t *testing.T,
+) {
 	suite.Run(t, new(ConfigPublicTestSuite))
 }

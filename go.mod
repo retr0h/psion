@@ -13,7 +13,7 @@ tool (
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/jedib0t/go-pretty/v6 v6.5.4
-	github.com/lmittmann/tint v1.0.4
+	github.com/lmittmann/tint v1.2.1
 	github.com/muesli/termenv v0.16.0
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0

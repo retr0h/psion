@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/retr0h/psion/internal"
+	"github.com/retr0h/psion/internal/cli"
 	"github.com/retr0h/psion/internal/file"
 	"github.com/retr0h/psion/pkg/resource/api"
 )
@@ -34,8 +35,8 @@ var statusCmd = &cobra.Command{
 			return fmt.Errorf("cannot get state: %w", err)
 		}
 
-		style := newCLIStyle(os.Stdout)
-		fmt.Printf("\n  %s\n\n", style.title.Render("RESOURCE STATUS"))
+		style := cli.NewTheme(os.Stdout, color)
+		fmt.Printf("\n  %s\n\n", style.Title("RESOURCE STATUS"))
 
 		generateInnerTable := func() table.Writer {
 			tw := table.NewWriter()
@@ -50,17 +51,17 @@ var statusCmd = &cobra.Command{
 		t.Style().Options.SeparateColumns = false
 		t.SetOutputMirror(os.Stdout)
 		t.AppendHeader(table.Row{
-			style.title.Render("Name"),
-			style.title.Render("Status"),
-			style.title.Render("Kind"),
-			style.title.Render("APIVersion"),
-			style.title.Render("Conditions"),
+			style.Title("Name"),
+			style.Title("Status"),
+			style.Title("Kind"),
+			style.Title("APIVersion"),
+			style.Title("Conditions"),
 		})
 		for _, resource := range state.GetItems() {
 			tConditions := generateInnerTable()
 			for _, condition := range resource.Status.Conditions {
 				tConditions.AppendRow(table.Row{"Type", condition.Type})
-				tConditions.AppendRow(table.Row{"Status", style.phase(string(condition.Status))})
+				tConditions.AppendRow(table.Row{"Status", style.Phase(string(condition.Status))})
 				tConditions.AppendRow(table.Row{"Message", condition.Message})
 				tConditions.AppendRow(table.Row{"Reason", condition.Reason})
 				tConditions.AppendRow(table.Row{"Got", condition.Got})
@@ -69,8 +70,8 @@ var statusCmd = &cobra.Command{
 			}
 			t.AppendRow(
 				table.Row{
-					style.accent.Render(resource.Name),
-					style.phase(string(resource.Phase)),
+					style.Accent.Render(resource.Name),
+					style.Phase(string(resource.Phase)),
 					resource.Kind,
 					resource.APIVersion,
 					tConditions.Render(),
@@ -81,8 +82,8 @@ var statusCmd = &cobra.Command{
 		t.AppendSeparator()
 		t.AppendFooter(
 			table.Row{
-				style.title.Render("Status"),
-				style.phase(state.GetStatusString()),
+				style.Title("Status"),
+				style.Phase(state.GetStatusString()),
 				"",
 				"",
 				"",

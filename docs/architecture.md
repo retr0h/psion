@@ -28,6 +28,7 @@ use `pkg/resource/api/v1alpha1`. A parallel implementation exists in
 handlers and saves `.state`. `status` reads that saved file. The only current
 resource operations are file removal and permission changes.
 
-Terminal presentation lives in `cmd/style.go`, with the block logo declared in
-`cmd/root.go`. The SVG logos use the same block shapes. Human output can be
-colored; version JSON stays suitable for scripts.
+Terminal themes and help rendering live in `internal/cli/`. `cmd/help.go` adapts
+Cobra commands to that renderer; `cmd/root.go` installs it. The SVG logos use
+the same block shapes as `internal/cli/theme.go`. Human output can be colored;
+version JSON stays suitable for scripts.

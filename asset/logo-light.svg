@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 80" width="288" height="80" role="img" aria-label="psion">
   <title>psion</title>
-  <!-- The two banner lines in cmd/root.go, drawn as blocks without a font dependency. -->
+  <!-- The two banner lines in internal/cli/theme.go, drawn as blocks without a font dependency. -->
   <rect x="8" y="8" width="16" height="32" fill="#57606a"/>
   <rect x="24" y="8" width="16" height="16" fill="#57606a"/>
   <rect x="40" y="8" width="16" height="32" fill="#57606a"/>

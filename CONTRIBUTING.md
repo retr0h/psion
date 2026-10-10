@@ -50,7 +50,8 @@ recipes do this automatically. Edit the source definitions in `resources.d/`.
 
 ```text
 main.go              entry point
-cmd/                 Cobra commands, terminal styles, embedded resource copies
+cmd/                 Cobra commands, help adapter, embedded resource copies
+internal/cli/        Lip Gloss themes, wordmark, and help rendering
 internal/config/     resource metadata loading
 internal/file/       filesystem operations
 pkg/resource/        resource implementations and state types

@@ -11,17 +11,14 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-)
 
-const (
-	bannerTop    = "█▀█ █▀ █ █▀█ █▄░█"
-	bannerBottom = "█▀▀ ▄█ █ █▄█ █░▀█"
+	"github.com/retr0h/psion/internal/cli"
 )
 
 var (
 	debug  bool
 	logger *slog.Logger
-	color  colorMode = "auto"
+	color  cli.ColorMode = "auto"
 	//go:embed resources/*.yaml
 	eFs       embed.FS
 	appFs     afero.Fs
@@ -46,8 +43,8 @@ func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
 		out := rootCmd.ErrOrStderr()
-		style := newCLIStyle(out)
-		_, _ = fmt.Fprintf(out, "\n  %s %s\n\n", style.failure.Render("Error:"), err)
+		style := cli.NewTheme(out, color)
+		_, _ = fmt.Fprintf(out, "\n  %s %s\n\n", style.Err.Render("Error:"), err)
 		os.Exit(1)
 	}
 }
@@ -75,7 +72,7 @@ func initLogger() {
 		tint.NewTextHandler(os.Stderr, &tint.Options{
 			Level:      logLevel,
 			TimeFormat: time.Kitchen,
-			NoColor:    !colorEnabled(os.Stderr),
+			NoColor:    !color.Enabled(os.Stderr),
 		}),
 	)
 }

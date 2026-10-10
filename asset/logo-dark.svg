@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288 80" width="288" height="80" role="img" aria-label="psion">
+  <title>psion</title>
+  <!-- The two banner lines in cmd/root.go, drawn as blocks without a font dependency. -->
+  <rect x="8" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="24" y="8" width="16" height="16" fill="#8b949e"/>
+  <rect x="40" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="72" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="88" y="8" width="16" height="16" fill="#8b949e"/>
+  <rect x="120" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="152" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="168" y="8" width="16" height="16" fill="#8b949e"/>
+  <rect x="184" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="216" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="232" y="24" width="16" height="16" fill="#8b949e"/>
+  <rect x="248" y="8" width="16" height="32" fill="#8b949e" opacity="0.25"/>
+  <rect x="264" y="8" width="16" height="32" fill="#8b949e"/>
+  <rect x="8" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="24" y="40" width="16" height="16" fill="#bc8cff"/>
+  <rect x="40" y="40" width="16" height="16" fill="#bc8cff"/>
+  <rect x="72" y="56" width="16" height="16" fill="#bc8cff"/>
+  <rect x="88" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="120" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="152" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="168" y="56" width="16" height="16" fill="#bc8cff"/>
+  <rect x="184" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="216" y="40" width="16" height="32" fill="#bc8cff"/>
+  <rect x="232" y="40" width="16" height="32" fill="#bc8cff" opacity="0.25"/>
+  <rect x="248" y="40" width="16" height="16" fill="#bc8cff"/>
+  <rect x="264" y="40" width="16" height="32" fill="#bc8cff"/>
+</svg>

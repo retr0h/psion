@@ -1,0 +1,7 @@
+[tools]
+go = "1.27.1"
+just = "1.43.1"
+uv = "latest"
+fd = "latest"
+ripgrep = "latest"
+jaq = "latest"

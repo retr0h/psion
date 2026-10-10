@@ -1,0 +1,36 @@
+version: 2
+
+project_name: psion
+
+before:
+  hooks:
+    - just resources
+
+builds:
+  - main: ./main.go
+    binary: psion
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/retr0h/psion/cmd.version={{.Version}}
+        -X github.com/retr0h/psion/cmd.commit={{.Commit}}
+        -X github.com/retr0h/psion/cmd.date={{.Date}}
+
+archives:
+  - formats: [tar.gz]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github
+  sort: asc
+
+release:
+  github:
+    owner: retr0h
+    name: psion

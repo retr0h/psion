@@ -1,0 +1,24 @@
+---
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+github:
+  - changed-files:
+      - any-glob-to-any-file: ".github/**"
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "go.mod"
+          - "go.sum"
+source:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "cmd/**"
+          - "internal/**"
+          - "pkg/**"
+          - "main.go"
+resources:
+  - changed-files:
+      - any-glob-to-any-file: "resources.d/**"

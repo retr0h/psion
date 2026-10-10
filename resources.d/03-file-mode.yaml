@@ -1,0 +1,9 @@
+---
+apiVersion: files.psion.io/v1alpha1
+kind: File
+metadata:
+  name: file-mode
+spec:
+  path: /tmp/baz
+  exists: true
+  mode: 0o700

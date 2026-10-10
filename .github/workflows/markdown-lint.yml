@@ -1,0 +1,23 @@
+---
+name: Markdown Lint
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install development tools
+        uses: jdx/mise-action@v3
+      - name: Fetch shared recipes
+        run: just fetch
+      - name: Check
+        run: just md-fmt-check

@@ -1,0 +1,16 @@
+cmd/resources/
+.claude/worktrees/
+.coverage/
+.just/
+.env
+.DS_Store
+cobertura.xml
+cover.out
+dist/
+result.xml
+.state
+test/integration/tmp/
+.task/
+
+# Shared tool versions belong in this repository, even if globally ignored.
+!.mise.toml

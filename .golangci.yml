@@ -1,0 +1,76 @@
+# golangci-lint v2 configuration.
+# https://golangci-lint.run/docs/configuration/file/
+
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - errname
+    - govet
+    - ineffassign
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - unused
+
+  settings:
+    revive:
+      # Named rules, not the whole set: these are conventions Go itself
+      # has an opinion about. Rules that report a threshold are left out.
+      rules:
+        - name: error-naming
+        - name: error-return
+        - name: error-strings
+        - name: errorf
+        - name: exported
+        - name: increment-decrement
+        - name: indent-error-flow
+        - name: range
+        - name: receiver-naming
+        - name: superfluous-else
+        - name: time-naming
+        - name: unused-parameter
+        - name: var-naming
+
+  exclusions:
+    # Existing declarations, retained while this change updates repository
+    # tooling and terminal presentation. Remove each exception when that code
+    # is revised; new declarations still get the full rule set.
+    rules:
+      - path: ^cmd/(apply|plan|status)\.go$
+        linters: [revive]
+        text: "^unused-parameter: parameter 'args' "
+        source: 'RunE: func\(cmd \*cobra.Command, args \[\]string\)'
+      - path: ^cmd/util\.go$
+        linters: [revive]
+        text: "^unused-parameter: parameter 'err' "
+        source: 'fs\.WalkDir\(eFs'
+      - path: ^cmd/version\.go$
+        linters: [revive]
+        text: "^unused-parameter: parameter '(cmd|args)' "
+        source: 'Run: func\(cmd \*cobra.Command, args \[\]string\)'
+      - path: ^pkg/resource/file/handler_mode_public_test\.go$
+        linters: [unused]
+        text: '^field (appDir|appFs|f) is unused$'
+    paths:
+      # Go shipped inside a JS package. Not ours, and not tracked in git.
+      - node_modules
+    presets:
+      - comments
+      - std-error-handling
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+issues:
+  # Defaults truncate: 50 findings per linter, and one per line.
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false

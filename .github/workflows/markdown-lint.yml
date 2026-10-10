@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Install development tools
-        uses: jdx/mise-action@v3
+        uses: jdx/mise-action@v5
       - name: Fetch shared recipes
         run: just fetch
       - name: Check

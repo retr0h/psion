@@ -72,7 +72,7 @@ func initLogger() {
 	}
 
 	logger = slog.New(
-		tint.NewHandler(os.Stderr, &tint.Options{
+		tint.NewTextHandler(os.Stderr, &tint.Options{
 			Level:      logLevel,
 			TimeFormat: time.Kitchen,
 			NoColor:    !colorEnabled(os.Stderr),

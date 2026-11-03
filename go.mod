@@ -22,7 +22,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	go.hein.dev/go-version v0.1.0
 	golang.org/x/term v0.47.0
-	k8s.io/apimachinery v0.37.1
+	k8s.io/apimachinery v0.37.2
 	sigs.k8s.io/yaml v1.6.0
 )
 

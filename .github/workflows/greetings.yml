@@ -1,7 +1,7 @@
 ---
 name: Greetings
 
-on: [pull_request, issues]
+on: [pull_request_target, issues]
 
 permissions:
   issues: write
@@ -11,8 +11,20 @@ jobs:
   greeting:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/first-interaction@v3
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        issue_message: 'Thank you for your first issue! 😊🕹️'
-        pr_message: 'Thank you for contributing to this project! 😊🕹️'
+      # The month has to come from somewhere. Earlier revisions branched on
+      # env.month, which nothing ever set, so the Hacktoberfest message was
+      # unreachable even in October.
+      - name: Work out the month
+        id: when
+        run: echo "month=$(date -u +%b)" >> "$GITHUB_OUTPUT"
+      - uses: actions/first-interaction@v3
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_message: >-
+            ${{ steps.when.outputs.month == 'Oct'
+            && 'Thank you for your first issue! Happy Hacktoberfest!!! 🎃👕🕹️'
+            || 'Thank you for your first issue! 😊🕹️' }}
+          pr_message: >-
+            ${{ steps.when.outputs.month == 'Oct'
+            && 'Thank you for contributing to this project. Happy Hacktoberfest!!! 🎃👕🕹️'
+            || 'Thank you for contributing to this project! 😊🕹️' }}

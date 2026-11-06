@@ -1,6 +1,6 @@
 module github.com/retr0h/psion
 
-go 1.27.1
+go 1.27.3
 
 tool (
 	github.com/boumenot/gocover-cobertura

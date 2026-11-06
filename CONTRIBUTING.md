@@ -228,7 +228,8 @@ just build
 
 ## Pull requests
 
-Use a branch and Conventional Commit messages such as
+Use a branch with a short, descriptive name such as `repo-setup`, without a
+personal prefix, and Conventional Commit messages such as
 `docs: clarify resource embedding` or `fix: preserve file permissions`. Describe
 the behavior changed, link related issues, and say which checks ran. Disclose AI
 assistance as the [policy](AI_POLICY.md) requires.

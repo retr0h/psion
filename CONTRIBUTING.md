@@ -18,7 +18,7 @@ Install [mise](https://mise.jdx.dev/), then install the tools declared in
 mise install
 ```
 
-Go 1.27.1 is pinned in both `.mise.toml` and `go.mod`. CI installs the same
+Go 1.27.3 is pinned in both `.mise.toml` and `go.mod`. CI installs the same
 development toolchain through mise.
 
 [just](https://just.systems/) runs development tasks.

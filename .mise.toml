@@ -1,5 +1,5 @@
 [tools]
-go = "1.27.1"
+go = "1.27.3"
 just = "1.43.1"
 uv = "latest"
 fd = "latest"
